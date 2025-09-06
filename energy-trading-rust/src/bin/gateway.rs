@@ -1,5 +1,6 @@
 use energy_trading::network::websocket_gateway::{WebSocketGateway, SystemEvent};
-use std::time::Duration;
+use energy_trading::bess_node::EnergyStatus;
+use std::time::{Duration, Instant};
 use tokio::time::sleep;
 
 #[tokio::main]
@@ -36,6 +37,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("🎯 Starting enhanced event generator...");
         
         let mut auction_id = 1;
+        let mut bess_energy_levels = [8.0, 10.0, 12.0]; // Starting energy levels for BESS 101, 102, 103
+        let mut last_recharge_time = Instant::now();
         
         loop {
             // Generate auction events
@@ -68,10 +71,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
 
-            // Step 2: BESS nodes respond with energy availability
+            // Step 2: BESS nodes respond with energy availability (with recharge simulation)
             println!("📡 BESS nodes responding with energy availability...");
+            
+            // Simulate energy recharge over time
+            let current_time = Instant::now();
+            let time_elapsed = current_time.duration_since(last_recharge_time).as_secs_f64();
+            last_recharge_time = current_time;
+            
             for bess_id in 101..=103 {
-                let energy_available = 8.0 + ((bess_id - 101) as f64 * 2.0); // 8-12 kWh
+                let bess_index = (bess_id - 101) as usize;
+                
+                // Recharge energy over time (simulating solar charging)
+                let recharge_rate = 0.05; // 0.05 kWh per second
+                let recharge_amount = recharge_rate * time_elapsed;
+                bess_energy_levels[bess_index] = (bess_energy_levels[bess_index] + recharge_amount).min(15.0); // Max 15 kWh
+                
+                let energy_available = bess_energy_levels[bess_index];
                 let percentage_for_sale = 70.0 + ((bess_id - 101) as f64 * 10.0); // 70-90%
                 
                 let response_event = SystemEvent::QueryResponse {
@@ -104,19 +120,37 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 sleep(Duration::from_secs(1)).await;
             }
 
-            // Accept the best bid (highest price)
+            // Accept the best bid (highest price) and deplete energy
             let final_price = 8.0 + ((auction_id * 19 + 23) as f64 * 0.61) % 22.0; // 8-30 c/kWh
             let energy_amount = 4.0; // 4 kWh
+            let winning_bess = 101 + (auction_id % 3); // Rotate winning BESS
+            let bess_index = (winning_bess - 101) as usize;
+
+            // Deplete energy from winning BESS
+            bess_energy_levels[bess_index] = (bess_energy_levels[bess_index] - energy_amount).max(0.0);
+            let new_energy_percentage = (bess_energy_levels[bess_index] / 15.0) * 100.0;
 
             let accept_event = SystemEvent::BidAccepted {
                 auction_id: auction_id as u64,
                 aggregator_id: 3,
-                bess_id: 123,
+                bess_id: winning_bess as u64,
                 final_price,
                 energy_amount,
             };
             event_gateway.broadcast_event(accept_event).await.unwrap();
-            println!("✅ Auction #{} completed: {:.1} kWh at {:.1}¢/kWh", auction_id, energy_amount, final_price);
+            println!("✅ Auction #{} completed: {:.1} kWh at {:.1}¢/kWh (BESS {}: {:.1} kWh remaining)", 
+                     auction_id, energy_amount, final_price, winning_bess, bess_energy_levels[bess_index]);
+
+            // Check if BESS is depleted and send event
+            if bess_energy_levels[bess_index] <= 0.1 {
+                let depleted_event = SystemEvent::EnergyDepleted {
+                    bess_id: winning_bess as u64,
+                    final_energy: bess_energy_levels[bess_index],
+                    energy_percentage: new_energy_percentage,
+                };
+                event_gateway.broadcast_event(depleted_event).await.unwrap();
+                println!("🔋 BESS Node {} energy depleted! ({:.1}% remaining)", winning_bess, new_energy_percentage);
+            }
 
             // Step 4: BESS nodes evaluate and respond to bids (realistic rejection logic)
             println!("⚖️ BESS nodes evaluating bids...");
@@ -148,10 +182,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
 
-            // Broadcast BESS node status updates
+            // Broadcast BESS node status updates with actual energy levels
             for device_id in 101..=103 {
-                let energy_available = 8.0 + ((device_id - 101) as f64 * 2.0); // 8-12 kWh (realistic for 15kWh battery)
+                let bess_index = (device_id - 101) as usize;
+                let energy_available = bess_energy_levels[bess_index];
                 let battery_health = (device_id - 101) as u64; // 0, 1, 2
+                let energy_percentage = (energy_available / 15.0) * 100.0;
                 
                 let status_event = SystemEvent::BESSNodeStatus {
                     device_id: device_id as u64,
@@ -160,6 +196,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     is_online: true,
                 };
                 event_gateway.broadcast_event(status_event).await.unwrap();
+                
+                // Send recharge event if energy increased significantly
+                if energy_available > 12.0 && energy_percentage > 80.0 {
+                    let recharge_event = SystemEvent::EnergyRecharged {
+                        bess_id: device_id as u64,
+                        energy_added: 0.0, // Will be calculated in real implementation
+                        new_total: energy_available,
+                        energy_percentage,
+                    };
+                    event_gateway.broadcast_event(recharge_event).await.unwrap();
+                    println!("🔋 BESS Node {} recharged to {:.1} kWh ({:.1}%)", device_id, energy_available, energy_percentage);
+                }
             }
 
             // Broadcast aggregator status updates

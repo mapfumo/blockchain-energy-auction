@@ -7,6 +7,8 @@ import {
   BidRejectedEvent,
   QuerySentEvent,
   QueryResponseEvent,
+  EnergyDepletedEvent,
+  EnergyRechargedEvent,
   SystemMetricsEvent,
   BESSNodeStatusEvent,
   AggregatorStatusEvent,
@@ -25,6 +27,8 @@ type EventFilter =
   | "BidRejected"
   | "QuerySent"
   | "QueryResponse"
+  | "EnergyDepleted"
+  | "EnergyRecharged"
   | "BESSNodeStatus"
   | "AggregatorStatus"
   | "SystemMetrics";
@@ -122,6 +126,28 @@ export const LiveEventsPanel: React.FC<LiveEventsPanelProps> = ({
           details: `${data.energy_available.toFixed(
             1
           )} kWh available (${data.percentage_for_sale.toFixed(0)}% for sale)`,
+        };
+      }
+      case "EnergyDepleted": {
+        const data = event.data as EnergyDepletedEvent;
+        return {
+          icon: "🔋",
+          color: "text-red-600",
+          bgColor: "bg-red-50 dark:bg-red-900/20",
+          title: "Energy Depleted",
+          description: `BESS Node ${data.bess_id}`,
+          details: `Energy depleted! ${data.final_energy.toFixed(1)} kWh remaining (${data.energy_percentage.toFixed(1)}%)`,
+        };
+      }
+      case "EnergyRecharged": {
+        const data = event.data as EnergyRechargedEvent;
+        return {
+          icon: "⚡",
+          color: "text-green-600",
+          bgColor: "bg-green-50 dark:bg-green-900/20",
+          title: "Energy Recharged",
+          description: `BESS Node ${data.bess_id}`,
+          details: `Recharged to ${data.new_total.toFixed(1)} kWh (${data.energy_percentage.toFixed(1)}%)`,
         };
       }
       case "SystemMetrics": {
@@ -273,6 +299,14 @@ export const LiveEventsPanel: React.FC<LiveEventsPanelProps> = ({
               <option value="QueryResponse">
                 Query Response (
                 {events.filter((e) => e.type === "QueryResponse").length})
+              </option>
+              <option value="EnergyDepleted">
+                Energy Depleted (
+                {events.filter((e) => e.type === "EnergyDepleted").length})
+              </option>
+              <option value="EnergyRecharged">
+                Energy Recharged (
+                {events.filter((e) => e.type === "EnergyRecharged").length})
               </option>
               <option value="BESSNodeStatus">
                 BESS Status (

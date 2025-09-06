@@ -59,6 +59,8 @@ export interface SystemEvent {
     | "BidRejected"
     | "QuerySent"
     | "QueryResponse"
+    | "EnergyDepleted"
+    | "EnergyRecharged"
     | "SystemMetrics"
     | "BESSNodeStatus"
     | "AggregatorStatus";
@@ -69,6 +71,8 @@ export interface SystemEvent {
     | BidRejectedEvent
     | QuerySentEvent
     | QueryResponseEvent
+    | EnergyDepletedEvent
+    | EnergyRechargedEvent
     | SystemMetricsEvent
     | BESSNodeStatusEvent
     | AggregatorStatusEvent;
@@ -112,6 +116,19 @@ export interface QueryResponseEvent {
   bess_id: number;
   energy_available: number; // Energy in kWh
   percentage_for_sale: number; // Percentage (0-100)
+}
+
+export interface EnergyDepletedEvent {
+  bess_id: number;
+  final_energy: number; // Final energy level in kWh
+  energy_percentage: number; // Energy percentage (0-100)
+}
+
+export interface EnergyRechargedEvent {
+  bess_id: number;
+  energy_added: number; // Energy added in kWh
+  new_total: number; // New total energy in kWh
+  energy_percentage: number; // Energy percentage (0-100)
 }
 
 export interface SystemMetricsEvent {
