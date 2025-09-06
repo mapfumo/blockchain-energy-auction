@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebSocket Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .status {
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
+      }
+      .connected {
+        background-color: #d4edda;
+        color: #155724;
+      }
+      .connecting {
+        background-color: #fff3cd;
+        color: #856404;
+      }
+      .error {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+      .message {
+        background-color: #f8f9fa;
+        padding: 10px;
+        margin: 5px 0;
+        border-left: 4px solid #007bff;
+      }
+      button {
+        padding: 10px 20px;
+        margin: 5px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🔌 WebSocket Connection Test</h1>
+
+    <div id="status" class="status connecting">Connecting...</div>
+
+    <div>
+      <button onclick="connect()">Connect</button>
+      <button onclick="disconnect()">Disconnect</button>
+      <button onclick="clearMessages()">Clear Messages</button>
+    </div>
+
+    <h3>📨 Messages:</h3>
+    <div id="messages"></div>
+
+    <script>
+      let ws = null;
+      let reconnectAttempts = 0;
+      const maxReconnectAttempts = 5;
+
+      function updateStatus(message, className) {
+        const status = document.getElementById("status");
+        status.textContent = message;
+        status.className = `status ${className}`;
+      }
+
+      function addMessage(message) {
+        const messages = document.getElementById("messages");
+        const messageDiv = document.createElement("div");
+        messageDiv.className = "message";
+        messageDiv.textContent =
+          new Date().toLocaleTimeString() + ": " + message;
+        messages.appendChild(messageDiv);
+        messages.scrollTop = messages.scrollHeight;
+      }
+
+      function connect() {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          addMessage("Already connected");
+          return;
+        }
+
+        updateStatus("Connecting...", "connecting");
+        addMessage("Attempting to connect to ws://localhost:8080/ws");
+
+        try {
+          ws = new WebSocket("ws://localhost:8080/ws");
+
+          ws.onopen = function (event) {
+            updateStatus("Connected ✅", "connected");
+            addMessage("WebSocket connection established");
+            reconnectAttempts = 0;
+          };
+
+          ws.onmessage = function (event) {
+            addMessage("Received: " + event.data);
+            try {
+              const data = JSON.parse(event.data);
+              addMessage("Parsed event: " + JSON.stringify(data, null, 2));
+            } catch (e) {
+              addMessage("Could not parse as JSON");
+            }
+          };
+
+          ws.onclose = function (event) {
+            updateStatus("Disconnected", "error");
+            addMessage(
+              "WebSocket connection closed: " + event.code + " " + event.reason
+            );
+
+            // Attempt to reconnect
+            if (reconnectAttempts < maxReconnectAttempts) {
+              reconnectAttempts++;
+              addMessage(
+                `Attempting to reconnect (${reconnectAttempts}/${maxReconnectAttempts})...`
+              );
+              setTimeout(connect, 3000);
+            } else {
+              addMessage("Max reconnection attempts reached");
+            }
+          };
+
+          ws.onerror = function (error) {
+            updateStatus("Error ❌", "error");
+            addMessage("WebSocket error: " + error);
+          };
+        } catch (error) {
+          updateStatus("Connection Failed", "error");
+          addMessage("Failed to create WebSocket: " + error);
+        }
+      }
+
+      function disconnect() {
+        if (ws) {
+          ws.close();
+          ws = null;
+          updateStatus("Disconnected", "error");
+          addMessage("Manually disconnected");
+        }
+      }
+
+      function clearMessages() {
+        document.getElementById("messages").innerHTML = "";
+      }
+
+      // Auto-connect on page load
+      window.onload = function () {
+        connect();
+      };
+    </script>
+  </body>
+</html>

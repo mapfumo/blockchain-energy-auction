@@ -1,0 +1,135 @@
+warning: field `buffer` is never read
+  --> src/network/unicast_connection.rs:14:5
+   |
+12 | pub struct UnicastConnection {
+   |            ----------------- field in this struct
+13 |     stream: TcpStream,
+14 |     buffer: Vec<u8>,
+   |     ^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: fields `id` and `last_seen` are never read
+   --> src/network/websocket_gateway.rs:100:5
+    |
+99  | struct WebSocketClient {
+    |        --------------- fields in this struct
+100 |     id: Uuid,
+    |     ^^
+101 |     last_seen: std::time::Instant,
+    |     ^^^^^^^^^
+    |
+    = note: `WebSocketClient` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `metrics` is never read
+   --> src/network/websocket_gateway.rs:230:5
+    |
+227 | struct GatewayState {
+    |        ------------ field in this struct
+...
+230 |     metrics: Arc<RwLock<SystemMetrics>>,
+    |     ^^^^^^^
+    |
+    = note: `GatewayState` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
+
+warning: `energy-trading` (lib) generated 3 warnings
+warning: unused import: `std::net::SocketAddr`
+ --> examples/bess_server_demo.rs:5:5
+  |
+5 | use std::net::SocketAddr;
+  |     ^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: `energy-trading` (example "bess_server_demo") generated 1 warning (run `cargo fix --example "bess_server_demo"` to apply 1 suggestion)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.12s
+     Running `target/debug/examples/bess_server_demo`
+🔋 Energy Trading System - BESS Server Demo
+=============================================
+📊 BESS Node Created:
+   Device ID: 123
+   Name: Solar Farm BESS-001
+   Total Capacity: 100.0 kWh
+   Current Level: 80.0 kWh
+   Reserve Price: $15.00/kWh
+   Available for Sale: 40.0 kWh
+[2m2025-09-06T07:00:48.839956Z[0m [32m INFO[0m [2menergy_trading::bess_tcp_server[0m[2m:[0m BESS TCP Server created for device 123 on 127.0.0.1:34129
+
+🚀 Starting BESS TCP Server on 127.0.0.1:34129
+[2m2025-09-06T07:00:48.840040Z[0m [32m INFO[0m [2menergy_trading::bess_tcp_server[0m[2m:[0m BESS TCP Server started on 127.0.0.1:34129
+✅ Server started successfully!
+
+🔌 Simulating Aggregator Interactions...
+[2m2025-09-06T07:00:48.941947Z[0m [32m INFO[0m [2menergy_trading::bess_tcp_server[0m[2m:[0m New connection from 127.0.0.1:47046
+
+📡 Aggregator 1: Sending energy query...
+[2m2025-09-06T07:00:48.942130Z[0m [32m INFO[0m [2menergy_trading::network::unicast_connection[0m[2m:[0m Sent ETP message type 1 (84 bytes)
+[2m2025-09-06T07:00:48.942149Z[0m [32m INFO[0m [2menergy_trading::network::unicast_connection[0m[2m:[0m Received ETP message type 1 (84 bytes)
+[2m2025-09-06T07:00:48.942185Z[0m [32m INFO[0m [2menergy_trading::bess_tcp_server[0m[2m:[0m Processing query message from device 789
+[2m2025-09-06T07:00:48.942250Z[0m [32m INFO[0m [2menergy_trading::network::unicast_connection[0m[2m:[0m Sent ETP message type 2 (84 bytes)
+[2m2025-09-06T07:00:48.942341Z[0m [32m INFO[0m [2menergy_trading::network::unicast_connection[0m[2m:[0m Received ETP message type 2 (84 bytes)
+📨 Received Query Response:
+   Message Type: 2
+   Device ID: 123
+   Energy Total: 80.0 kWh
+   Percentage for Sale: 50.0%
+
+💰 Aggregator 1: Placing bid...
+[2m2025-09-06T07:00:48.942424Z[0m [32m INFO[0m [2menergy_trading::network::unicast_connection[0m[2m:[0m Sent ETP message type 3 (84 bytes)
+[2m2025-09-06T07:00:48.942457Z[0m [32m INFO[0m [2menergy_trading::network::unicast_connection[0m[2m:[0m Received ETP message type 3 (84 bytes)
+[2m2025-09-06T07:00:48.942487Z[0m [32m INFO[0m [2menergy_trading::bess_tcp_server[0m[2m:[0m Processing bid message from device 0: $18.00 for 10.00 kWh
+[2m2025-09-06T07:00:48.942536Z[0m [32m INFO[0m [2menergy_trading::network::unicast_connection[0m[2m:[0m Sent ETP message type 4 (84 bytes)
+[2m2025-09-06T07:00:48.942607Z[0m [32m INFO[0m [2menergy_trading::network::unicast_connection[0m[2m:[0m Received ETP message type 4 (84 bytes)
+📨 Received Bid Response:
+   Message Type: 4
+   Device ID: 123
+   ✅ BID ACCEPTED!
+   Sale Price: $18.00/kWh
+   Energy Amount: 10.0 kWh
+
+📡 Aggregator 2: Sending energy query...
+[2m2025-09-06T07:00:48.942799Z[0m [32m INFO[0m [2menergy_trading::bess_tcp_server[0m[2m:[0m New connection from 127.0.0.1:47052
+[2m2025-09-06T07:00:48.942820Z[0m [32m INFO[0m [2menergy_trading::network::unicast_connection[0m[2m:[0m Sent ETP message type 1 (84 bytes)
+[2m2025-09-06T07:00:48.942895Z[0m [32m INFO[0m [2menergy_trading::network::unicast_connection[0m[2m:[0m Received ETP message type 1 (84 bytes)
+[2m2025-09-06T07:00:48.942928Z[0m [32m INFO[0m [2menergy_trading::bess_tcp_server[0m[2m:[0m Processing query message from device 790
+[2m2025-09-06T07:00:48.942982Z[0m [32m INFO[0m [2menergy_trading::network::unicast_connection[0m[2m:[0m Sent ETP message type 2 (84 bytes)
+[2m2025-09-06T07:00:48.943055Z[0m [32m INFO[0m [2menergy_trading::network::unicast_connection[0m[2m:[0m Received ETP message type 2 (84 bytes)
+📨 Received Query Response:
+   Energy Total: 80.0 kWh
+   Percentage for Sale: 50.0%
+
+💰 Aggregator 2: Placing competitive bid...
+[2m2025-09-06T07:00:48.943123Z[0m [32m INFO[0m [2menergy_trading::network::unicast_connection[0m[2m:[0m Sent ETP message type 3 (84 bytes)
+[2m2025-09-06T07:00:48.943155Z[0m [32m INFO[0m [2menergy_trading::network::unicast_connection[0m[2m:[0m Received ETP message type 3 (84 bytes)
+[2m2025-09-06T07:00:48.943182Z[0m [32m INFO[0m [2menergy_trading::bess_tcp_server[0m[2m:[0m Processing bid message from device 0: $20.00 for 15.00 kWh
+[2m2025-09-06T07:00:48.943224Z[0m [32m INFO[0m [2menergy_trading::network::unicast_connection[0m[2m:[0m Sent ETP message type 4 (84 bytes)
+[2m2025-09-06T07:00:48.943287Z[0m [32m INFO[0m [2menergy_trading::network::unicast_connection[0m[2m:[0m Received ETP message type 4 (84 bytes)
+📨 Received Bid Response:
+   ✅ BID ACCEPTED!
+   Sale Price: $20.00/kWh
+   Energy Amount: 15.0 kWh
+
+⚡ Testing timing constraints with DeviceFailure message...
+[2m2025-09-06T07:00:48.943361Z[0m [32m INFO[0m [2menergy_trading::network::unicast_connection[0m[2m:[0m Sent ETP message type 8 (84 bytes)
+   DeviceFailure message sent (processed within 200ms constraint)
+
+📊 Testing BESS status message...
+[2m2025-09-06T07:00:48.943389Z[0m [32m INFO[0m [2menergy_trading::network::unicast_connection[0m[2m:[0m Received ETP message type 8 (84 bytes)
+[2m2025-09-06T07:00:48.943399Z[0m [32m INFO[0m [2menergy_trading::network::unicast_connection[0m[2m:[0m Sent ETP message type 9 (84 bytes)
+   BESS status message sent (processed within 2000ms constraint)
+[2m2025-09-06T07:00:48.943422Z[0m [33m WARN[0m [2menergy_trading::bess_tcp_server[0m[2m:[0m Processing device failure from device 123
+
+🎯 Demo Results:
+   ✅ BESS TCP Server handled multiple concurrent connections
+   ✅ Query/Response cycle completed successfully
+   ✅ Bid evaluation and competitive pricing demonstrated
+   ✅ Timing constraints respected (≤500ms for critical messages)
+   ✅ Real-time energy trading protocol working correctly
+
+💡 Key Benefits Demonstrated:
+   • Multiple aggregators can compete for energy
+   • BESS can evaluate bids against reserve price
+   • Real-time communication with timing guarantees
+   • Competitive pricing benefits for energy storage owners
+
+🏁 Demo completed successfully!

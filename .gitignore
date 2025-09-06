@@ -1,0 +1,12 @@
+.cursorrules
+docs/cursor-context.md
+energy-trading-rust/target
+energy-trading-rust/Cargo.lock
+energy-trading-rust/tests/target
+energy-trading-rust/tests/Cargo.lock
+energy-trading-rust/tests/integration_tests/target
+energy-trading-rust/tests/integration_tests/Cargo.lock
+energy-trading-rust/tests/integration_tests/integration_tests/target
+energy-trading-rust/tests/integration_tests/integration_tests/Cargo.lock
+energy-trading-rust/tests/integration_tests/integration_tests/integration_tests/target
+energy-trading-rust/tests/integration_tests/integration_tests/integration_tests/Cargo.lock

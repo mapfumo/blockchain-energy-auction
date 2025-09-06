@@ -1,0 +1,173 @@
+warning: field `buffer` is never read
+  --> src/network/unicast_connection.rs:14:5
+   |
+12 | pub struct UnicastConnection {
+   |            ----------------- field in this struct
+13 |     stream: TcpStream,
+14 |     buffer: Vec<u8>,
+   |     ^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: fields `id` and `last_seen` are never read
+   --> src/network/websocket_gateway.rs:100:5
+    |
+99  | struct WebSocketClient {
+    |        --------------- fields in this struct
+100 |     id: Uuid,
+    |     ^^
+101 |     last_seen: std::time::Instant,
+    |     ^^^^^^^^^
+    |
+    = note: `WebSocketClient` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `metrics` is never read
+   --> src/network/websocket_gateway.rs:230:5
+    |
+227 | struct GatewayState {
+    |        ------------ field in this struct
+...
+230 |     metrics: Arc<RwLock<SystemMetrics>>,
+    |     ^^^^^^^
+    |
+    = note: `GatewayState` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
+
+warning: `energy-trading` (lib) generated 3 warnings
+   Compiling energy-trading v0.1.0 (/home/tony/Desktop/energy-trading/energy-trading-rust)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.76s
+     Running `target/debug/gateway`
+Starting Energy Trading WebSocket Gateway...
+[2m2025-09-06T07:00:47.473464Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m WebSocket gateway created on port 8080
+WebSocket Gateway starting on port 8080...
+Connect to: ws://localhost:8080/ws
+[2m2025-09-06T07:00:47.473641Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m WebSocket gateway started on port 8080
+🎯 Starting event generator...
+[2m2025-09-06T07:00:52.475439Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AuctionStarted { auction_id: 1, total_energy: 110.0, reserve_price: 15.5 }
+[2m2025-09-06T07:00:55.486942Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 1, bess_id: 123, bid_price: 20.0, energy_amount: 15.0 }
+[2m2025-09-06T07:00:57.488150Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 2, bess_id: 123, bid_price: 22.0, energy_amount: 20.0 }
+[2m2025-09-06T07:00:59.489410Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 3, bess_id: 123, bid_price: 24.0, energy_amount: 25.0 }
+[2m2025-09-06T07:01:01.497304Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidAccepted { aggregator_id: 3, bess_id: 123, final_price: 24.0, energy_amount: 20.0 }
+[2m2025-09-06T07:01:03.498040Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: SystemMetrics { total_auctions: 1, total_bids: 3, avg_price_improvement_percent: 27.0, active_bess_nodes: 3, active_aggregators: 5 }
+[2m2025-09-06T07:01:13.499117Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AuctionStarted { auction_id: 2, total_energy: 120.0, reserve_price: 16.0 }
+[2m2025-09-06T07:01:16.500212Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 1, bess_id: 123, bid_price: 20.0, energy_amount: 15.0 }
+[2m2025-09-06T07:01:18.501546Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 2, bess_id: 123, bid_price: 22.0, energy_amount: 20.0 }
+[2m2025-09-06T07:01:20.502768Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 3, bess_id: 123, bid_price: 24.0, energy_amount: 25.0 }
+[2m2025-09-06T07:01:22.504011Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidAccepted { aggregator_id: 3, bess_id: 123, final_price: 24.0, energy_amount: 20.0 }
+[2m2025-09-06T07:01:24.504806Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: SystemMetrics { total_auctions: 2, total_bids: 6, avg_price_improvement_percent: 29.0, active_bess_nodes: 3, active_aggregators: 5 }
+[2m2025-09-06T07:01:34.506222Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AuctionStarted { auction_id: 3, total_energy: 130.0, reserve_price: 16.5 }
+[2m2025-09-06T07:01:37.507172Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 1, bess_id: 123, bid_price: 20.0, energy_amount: 15.0 }
+[2m2025-09-06T07:01:39.514936Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 2, bess_id: 123, bid_price: 22.0, energy_amount: 20.0 }
+[2m2025-09-06T07:01:41.515889Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 3, bess_id: 123, bid_price: 24.0, energy_amount: 25.0 }
+[2m2025-09-06T07:01:43.517135Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidAccepted { aggregator_id: 3, bess_id: 123, final_price: 24.0, energy_amount: 20.0 }
+[2m2025-09-06T07:01:45.518244Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: SystemMetrics { total_auctions: 3, total_bids: 9, avg_price_improvement_percent: 31.0, active_bess_nodes: 3, active_aggregators: 5 }
+[2m2025-09-06T07:01:55.519050Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AuctionStarted { auction_id: 4, total_energy: 140.0, reserve_price: 17.0 }
+[2m2025-09-06T07:01:58.519883Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 1, bess_id: 123, bid_price: 20.0, energy_amount: 15.0 }
+[2m2025-09-06T07:02:00.520992Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 2, bess_id: 123, bid_price: 22.0, energy_amount: 20.0 }
+[2m2025-09-06T07:02:02.522121Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 3, bess_id: 123, bid_price: 24.0, energy_amount: 25.0 }
+[2m2025-09-06T07:02:04.523407Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidAccepted { aggregator_id: 3, bess_id: 123, final_price: 24.0, energy_amount: 20.0 }
+[2m2025-09-06T07:02:06.525031Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: SystemMetrics { total_auctions: 4, total_bids: 12, avg_price_improvement_percent: 33.0, active_bess_nodes: 3, active_aggregators: 5 }
+[2m2025-09-06T07:02:16.525958Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AuctionStarted { auction_id: 5, total_energy: 150.0, reserve_price: 17.5 }
+[2m2025-09-06T07:02:19.526648Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 1, bess_id: 123, bid_price: 20.0, energy_amount: 15.0 }
+[2m2025-09-06T07:02:21.528103Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 2, bess_id: 123, bid_price: 22.0, energy_amount: 20.0 }
+[2m2025-09-06T07:02:23.529206Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 3, bess_id: 123, bid_price: 24.0, energy_amount: 25.0 }
+[2m2025-09-06T07:02:25.530880Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidAccepted { aggregator_id: 3, bess_id: 123, final_price: 24.0, energy_amount: 20.0 }
+[2m2025-09-06T07:02:27.532051Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: SystemMetrics { total_auctions: 5, total_bids: 15, avg_price_improvement_percent: 35.0, active_bess_nodes: 3, active_aggregators: 5 }
+[2m2025-09-06T07:02:37.533197Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AuctionStarted { auction_id: 6, total_energy: 160.0, reserve_price: 18.0 }
+[2m2025-09-06T07:02:40.534054Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 1, bess_id: 123, bid_price: 20.0, energy_amount: 15.0 }
+[2m2025-09-06T07:02:42.535099Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 2, bess_id: 123, bid_price: 22.0, energy_amount: 20.0 }
+[2m2025-09-06T07:02:44.538892Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 3, bess_id: 123, bid_price: 24.0, energy_amount: 25.0 }
+[2m2025-09-06T07:02:46.540060Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidAccepted { aggregator_id: 3, bess_id: 123, final_price: 24.0, energy_amount: 20.0 }
+[2m2025-09-06T07:02:48.541127Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: SystemMetrics { total_auctions: 6, total_bids: 18, avg_price_improvement_percent: 37.0, active_bess_nodes: 3, active_aggregators: 5 }
+[2m2025-09-06T07:02:58.542135Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AuctionStarted { auction_id: 7, total_energy: 170.0, reserve_price: 18.5 }
+[2m2025-09-06T07:03:01.543256Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 1, bess_id: 123, bid_price: 20.0, energy_amount: 15.0 }
+[2m2025-09-06T07:03:03.544611Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 2, bess_id: 123, bid_price: 22.0, energy_amount: 20.0 }
+[2m2025-09-06T07:03:05.545960Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 3, bess_id: 123, bid_price: 24.0, energy_amount: 25.0 }
+[2m2025-09-06T07:03:07.547122Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidAccepted { aggregator_id: 3, bess_id: 123, final_price: 24.0, energy_amount: 20.0 }
+[2m2025-09-06T07:03:09.548598Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: SystemMetrics { total_auctions: 7, total_bids: 21, avg_price_improvement_percent: 39.0, active_bess_nodes: 3, active_aggregators: 5 }
+[2m2025-09-06T07:03:19.550445Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AuctionStarted { auction_id: 8, total_energy: 180.0, reserve_price: 19.0 }
+[2m2025-09-06T07:03:22.558885Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 1, bess_id: 123, bid_price: 20.0, energy_amount: 15.0 }
+[2m2025-09-06T07:03:24.560098Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 2, bess_id: 123, bid_price: 22.0, energy_amount: 20.0 }
+[2m2025-09-06T07:03:26.561123Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 3, bess_id: 123, bid_price: 24.0, energy_amount: 25.0 }
+[2m2025-09-06T07:03:28.567393Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidAccepted { aggregator_id: 3, bess_id: 123, final_price: 24.0, energy_amount: 20.0 }
+[2m2025-09-06T07:03:30.569009Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: SystemMetrics { total_auctions: 8, total_bids: 24, avg_price_improvement_percent: 41.0, active_bess_nodes: 3, active_aggregators: 5 }
+[2m2025-09-06T07:03:40.570100Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AuctionStarted { auction_id: 9, total_energy: 190.0, reserve_price: 19.5 }
+[2m2025-09-06T07:03:43.571026Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 1, bess_id: 123, bid_price: 20.0, energy_amount: 15.0 }
+[2m2025-09-06T07:03:45.572183Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 2, bess_id: 123, bid_price: 22.0, energy_amount: 20.0 }
+[2m2025-09-06T07:03:47.578871Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 3, bess_id: 123, bid_price: 24.0, energy_amount: 25.0 }
+[2m2025-09-06T07:03:49.580012Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidAccepted { aggregator_id: 3, bess_id: 123, final_price: 24.0, energy_amount: 20.0 }
+[2m2025-09-06T07:03:51.581107Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: SystemMetrics { total_auctions: 9, total_bids: 27, avg_price_improvement_percent: 43.0, active_bess_nodes: 3, active_aggregators: 5 }
+[2m2025-09-06T07:04:01.582199Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AuctionStarted { auction_id: 10, total_energy: 200.0, reserve_price: 20.0 }
+[2m2025-09-06T07:04:04.583453Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 1, bess_id: 123, bid_price: 20.0, energy_amount: 15.0 }
+[2m2025-09-06T07:04:06.585883Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 2, bess_id: 123, bid_price: 22.0, energy_amount: 20.0 }
+[2m2025-09-06T07:04:08.587078Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 3, bess_id: 123, bid_price: 24.0, energy_amount: 25.0 }
+[2m2025-09-06T07:04:10.588095Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidAccepted { aggregator_id: 3, bess_id: 123, final_price: 24.0, energy_amount: 20.0 }
+[2m2025-09-06T07:04:12.588979Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: SystemMetrics { total_auctions: 10, total_bids: 30, avg_price_improvement_percent: 45.0, active_bess_nodes: 3, active_aggregators: 5 }
+[2m2025-09-06T07:04:22.590477Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AuctionStarted { auction_id: 11, total_energy: 210.0, reserve_price: 20.5 }
+[2m2025-09-06T07:04:25.592119Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 1, bess_id: 123, bid_price: 20.0, energy_amount: 15.0 }
+[2m2025-09-06T07:04:27.593443Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 2, bess_id: 123, bid_price: 22.0, energy_amount: 20.0 }
+[2m2025-09-06T07:04:29.595647Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 3, bess_id: 123, bid_price: 24.0, energy_amount: 25.0 }
+[2m2025-09-06T07:04:31.597232Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidAccepted { aggregator_id: 3, bess_id: 123, final_price: 24.0, energy_amount: 20.0 }
+[2m2025-09-06T07:04:33.598006Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: SystemMetrics { total_auctions: 11, total_bids: 33, avg_price_improvement_percent: 47.0, active_bess_nodes: 3, active_aggregators: 5 }
+[2m2025-09-06T07:04:43.599048Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AuctionStarted { auction_id: 12, total_energy: 220.0, reserve_price: 21.0 }
+[2m2025-09-06T07:04:46.600004Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 1, bess_id: 123, bid_price: 20.0, energy_amount: 15.0 }
+[2m2025-09-06T07:04:48.601087Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 2, bess_id: 123, bid_price: 22.0, energy_amount: 20.0 }
+[2m2025-09-06T07:04:50.602190Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 3, bess_id: 123, bid_price: 24.0, energy_amount: 25.0 }
+[2m2025-09-06T07:04:52.445813Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m WebSocket client f5e5c671-f1f6-4e77-86f7-e00429630dbf connected
+[2m2025-09-06T07:04:52.446011Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Received from client f5e5c671-f1f6-4e77-86f7-e00429630dbf: {"SystemMetrics":{"total_auctions":5,"total_bids":12,"avg_price_improvement_percent":15.5,"active_bess_nodes":3,"active_aggregators":2}}
+[2m2025-09-06T07:04:52.602983Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidAccepted { aggregator_id: 3, bess_id: 123, final_price: 24.0, energy_amount: 20.0 }
+[2m2025-09-06T07:04:54.604043Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: SystemMetrics { total_auctions: 12, total_bids: 36, avg_price_improvement_percent: 49.0, active_bess_nodes: 3, active_aggregators: 5 }
+[2m2025-09-06T07:04:57.447263Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m WebSocket client f5e5c671-f1f6-4e77-86f7-e00429630dbf disconnected
+[2m2025-09-06T07:05:04.605382Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AuctionStarted { auction_id: 13, total_energy: 230.0, reserve_price: 21.5 }
+[2m2025-09-06T07:05:07.606874Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 1, bess_id: 123, bid_price: 20.0, energy_amount: 15.0 }
+[2m2025-09-06T07:05:09.608172Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 2, bess_id: 123, bid_price: 22.0, energy_amount: 20.0 }
+[2m2025-09-06T07:05:11.610870Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 3, bess_id: 123, bid_price: 24.0, energy_amount: 25.0 }
+[2m2025-09-06T07:05:13.611881Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidAccepted { aggregator_id: 3, bess_id: 123, final_price: 24.0, energy_amount: 20.0 }
+[2m2025-09-06T07:05:15.612898Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: SystemMetrics { total_auctions: 13, total_bids: 39, avg_price_improvement_percent: 51.0, active_bess_nodes: 3, active_aggregators: 5 }
+[2m2025-09-06T07:05:25.614355Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AuctionStarted { auction_id: 14, total_energy: 240.0, reserve_price: 22.0 }
+[2m2025-09-06T07:05:28.615222Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 1, bess_id: 123, bid_price: 20.0, energy_amount: 15.0 }
+[2m2025-09-06T07:05:30.615979Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 2, bess_id: 123, bid_price: 22.0, energy_amount: 20.0 }
+[2m2025-09-06T07:05:32.617041Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 3, bess_id: 123, bid_price: 24.0, energy_amount: 25.0 }
+[2m2025-09-06T07:05:34.618172Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidAccepted { aggregator_id: 3, bess_id: 123, final_price: 24.0, energy_amount: 20.0 }
+[2m2025-09-06T07:05:36.619174Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: SystemMetrics { total_auctions: 14, total_bids: 42, avg_price_improvement_percent: 53.0, active_bess_nodes: 3, active_aggregators: 5 }
+[2m2025-09-06T07:05:46.620110Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AuctionStarted { auction_id: 15, total_energy: 250.0, reserve_price: 22.5 }
+[2m2025-09-06T07:05:49.631870Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 1, bess_id: 123, bid_price: 20.0, energy_amount: 15.0 }
+[2m2025-09-06T07:05:51.633057Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 2, bess_id: 123, bid_price: 22.0, energy_amount: 20.0 }
+[2m2025-09-06T07:05:53.634144Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 3, bess_id: 123, bid_price: 24.0, energy_amount: 25.0 }
+[2m2025-09-06T07:05:55.636943Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidAccepted { aggregator_id: 3, bess_id: 123, final_price: 24.0, energy_amount: 20.0 }
+[2m2025-09-06T07:05:57.638266Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: SystemMetrics { total_auctions: 15, total_bids: 45, avg_price_improvement_percent: 55.0, active_bess_nodes: 3, active_aggregators: 5 }
+[2m2025-09-06T07:06:07.639133Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AuctionStarted { auction_id: 16, total_energy: 260.0, reserve_price: 23.0 }
+[2m2025-09-06T07:06:10.640423Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 1, bess_id: 123, bid_price: 20.0, energy_amount: 15.0 }
+[2m2025-09-06T07:06:12.642227Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 2, bess_id: 123, bid_price: 22.0, energy_amount: 20.0 }
+[2m2025-09-06T07:06:14.651161Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 3, bess_id: 123, bid_price: 24.0, energy_amount: 25.0 }
+[2m2025-09-06T07:06:16.652472Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidAccepted { aggregator_id: 3, bess_id: 123, final_price: 24.0, energy_amount: 20.0 }
+[2m2025-09-06T07:06:18.654297Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: SystemMetrics { total_auctions: 16, total_bids: 48, avg_price_improvement_percent: 57.0, active_bess_nodes: 3, active_aggregators: 5 }
+[2m2025-09-06T07:06:28.655655Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AuctionStarted { auction_id: 17, total_energy: 270.0, reserve_price: 23.5 }
+[2m2025-09-06T07:06:31.656895Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 1, bess_id: 123, bid_price: 20.0, energy_amount: 15.0 }
+[2m2025-09-06T07:06:33.658941Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 2, bess_id: 123, bid_price: 22.0, energy_amount: 20.0 }
+[2m2025-09-06T07:06:35.660222Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 3, bess_id: 123, bid_price: 24.0, energy_amount: 25.0 }
+[2m2025-09-06T07:06:37.661600Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidAccepted { aggregator_id: 3, bess_id: 123, final_price: 24.0, energy_amount: 20.0 }
+[2m2025-09-06T07:06:39.663206Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: SystemMetrics { total_auctions: 17, total_bids: 51, avg_price_improvement_percent: 59.0, active_bess_nodes: 3, active_aggregators: 5 }
+[2m2025-09-06T07:06:49.664308Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AuctionStarted { auction_id: 18, total_energy: 280.0, reserve_price: 24.0 }
+[2m2025-09-06T07:06:52.664965Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 1, bess_id: 123, bid_price: 20.0, energy_amount: 15.0 }
+[2m2025-09-06T07:06:54.666016Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 2, bess_id: 123, bid_price: 22.0, energy_amount: 20.0 }
+[2m2025-09-06T07:06:56.667154Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 3, bess_id: 123, bid_price: 24.0, energy_amount: 25.0 }
+[2m2025-09-06T07:06:58.668234Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidAccepted { aggregator_id: 3, bess_id: 123, final_price: 24.0, energy_amount: 20.0 }
+[2m2025-09-06T07:07:00.669534Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: SystemMetrics { total_auctions: 18, total_bids: 54, avg_price_improvement_percent: 61.0, active_bess_nodes: 3, active_aggregators: 5 }
+[2m2025-09-06T07:07:10.671027Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AuctionStarted { auction_id: 19, total_energy: 290.0, reserve_price: 24.5 }
+[2m2025-09-06T07:07:13.672048Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 1, bess_id: 123, bid_price: 20.0, energy_amount: 15.0 }
+[2m2025-09-06T07:07:15.673401Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 2, bess_id: 123, bid_price: 22.0, energy_amount: 20.0 }
+[2m2025-09-06T07:07:17.675313Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 3, bess_id: 123, bid_price: 24.0, energy_amount: 25.0 }
+[2m2025-09-06T07:07:19.676647Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidAccepted { aggregator_id: 3, bess_id: 123, final_price: 24.0, energy_amount: 20.0 }
+[2m2025-09-06T07:07:21.677732Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: SystemMetrics { total_auctions: 19, total_bids: 57, avg_price_improvement_percent: 63.0, active_bess_nodes: 3, active_aggregators: 5 }
+[2m2025-09-06T07:07:31.679401Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AuctionStarted { auction_id: 20, total_energy: 300.0, reserve_price: 25.0 }
+[2m2025-09-06T07:07:34.681436Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 1, bess_id: 123, bid_price: 20.0, energy_amount: 15.0 }
+[2m2025-09-06T07:07:36.683185Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 2, bess_id: 123, bid_price: 22.0, energy_amount: 20.0 }
+[2m2025-09-06T07:07:38.683952Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 3, bess_id: 123, bid_price: 24.0, energy_amount: 25.0 }
+[2m2025-09-06T07:07:40.685010Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidAccepted { aggregator_id: 3, bess_id: 123, final_price: 24.0, energy_amount: 20.0 }
+[2m2025-09-06T07:07:42.686222Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: SystemMetrics { total_auctions: 20, total_bids: 60, avg_price_improvement_percent: 65.0, active_bess_nodes: 3, active_aggregators: 5 }
+[2m2025-09-06T07:07:52.687176Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AuctionStarted { auction_id: 21, total_energy: 310.0, reserve_price: 25.5 }
+[2m2025-09-06T07:07:55.688159Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 1, bess_id: 123, bid_price: 20.0, energy_amount: 15.0 }
+[2m2025-09-06T07:07:57.688669Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 2, bess_id: 123, bid_price: 22.0, energy_amount: 20.0 }
+[2m2025-09-06T07:07:59.689788Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { aggregator_id: 3, bess_id: 123, bid_price: 24.0, energy_amount: 25.0 }
+[2m2025-09-06T07:08:01.691163Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidAccepted { aggregator_id: 3, bess_id: 123, final_price: 24.0, energy_amount: 20.0 }
+[2m2025-09-06T07:08:03.692182Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: SystemMetrics { total_auctions: 21, total_bids: 63, avg_price_improvement_percent: 67.0, active_bess_nodes: 3, active_aggregators: 5 }

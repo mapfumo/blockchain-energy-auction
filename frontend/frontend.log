@@ -1,0 +1,54 @@
+
+> energy-trading-dashboard@0.1.0 dev
+> next dev
+
+ ⚠ Invalid next.config.js options detected: 
+ ⚠     Unrecognized key(s) in object: 'swcMinify'
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+   ▲ Next.js 15.5.2
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.250:3000
+
+ ✓ Starting...
+ ✓ Ready in 1618ms
+ ○ Compiling / ...
+ ✓ Compiled / in 926ms (959 modules)
+ GET / 200 in 1485ms
+ ✓ Compiled in 84ms (285 modules)
+ ✓ Compiled /test in 206ms (291 modules)
+ GET /test 200 in 461ms
+ ✓ Compiled /simple-test in 91ms (299 modules)
+ GET /simple-test 200 in 317ms
+ GET /simple-test 200 in 209ms
+ GET /simple-test 200 in 208ms
+ ✓ Compiled / in 237ms (967 modules)
+ GET / 200 in 533ms
+ ✓ Compiled in 232ms (965 modules)
+ ✓ Compiled in 146ms (965 modules)
+ GET / 200 in 286ms
+ GET / 200 in 207ms
+ ✓ Compiled in 119ms (959 modules)
+ ✓ Compiled in 112ms (959 modules)
+ ✓ Compiled /simple-test in 93ms (965 modules)
+ GET /simple-test 200 in 325ms
+ GET / 200 in 312ms
+ ✓ Compiled in 182ms (965 modules)
+ ✓ Compiled in 193ms (965 modules)
+ GET / 200 in 345ms
+ GET / 200 in 206ms
+ ✓ Compiled in 321ms (965 modules)
+ ✓ Compiled in 236ms (965 modules)
+ ✓ Compiled in 207ms (965 modules)
+ ✓ Compiled in 153ms (965 modules)
+ ✓ Compiled in 539ms (965 modules)
+ GET / 200 in 351ms
+ GET / 200 in 208ms
+ ✓ Compiled in 245ms (965 modules)
+ ✓ Compiled in 210ms (965 modules)
+ ✓ Compiled in 82ms (297 modules)
+ GET / 200 in 233ms
+ GET / 200 in 207ms
+ GET / 200 in 205ms
+ GET / 200 in 207ms
+ ✓ Compiled in 108ms (297 modules)
+ ✓ Compiled in 64ms (297 modules)
