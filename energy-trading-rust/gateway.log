@@ -1,0 +1,367 @@
+warning: field `buffer` is never read
+  --> src/network/unicast_connection.rs:14:5
+   |
+12 | pub struct UnicastConnection {
+   |            ----------------- field in this struct
+13 |     stream: TcpStream,
+14 |     buffer: Vec<u8>,
+   |     ^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: fields `id` and `last_seen` are never read
+   --> src/network/websocket_gateway.rs:136:5
+    |
+135 | struct WebSocketClient {
+    |        --------------- fields in this struct
+136 |     id: Uuid,
+    |     ^^
+137 |     last_seen: std::time::Instant,
+    |     ^^^^^^^^^
+    |
+    = note: `WebSocketClient` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `metrics` is never read
+   --> src/network/websocket_gateway.rs:272:5
+    |
+269 | struct GatewayState {
+    |        ------------ field in this struct
+...
+272 |     metrics: Arc<RwLock<SystemMetrics>>,
+    |     ^^^^^^^
+    |
+    = note: `GatewayState` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
+
+warning: `energy-trading` (lib) generated 3 warnings
+warning: unused import: `energy_trading::bess_node::EnergyStatus`
+ --> src/bin/gateway.rs:2:5
+  |
+2 | use energy_trading::bess_node::EnergyStatus;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: `energy-trading` (bin "gateway") generated 1 warning (run `cargo fix --bin "gateway"` to apply 1 suggestion)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.12s
+     Running `target/debug/gateway`
+Starting Energy Trading WebSocket Gateway...
+[2m2025-09-06T12:53:47.049676Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m WebSocket gateway created on port 8080
+WebSocket Gateway starting on port 8080...
+Connect to: ws://localhost:8080/ws
+[2m2025-09-06T12:53:47.050038Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m WebSocket gateway started on port 8080
+🎯 Starting enhanced event generator...
+[2m2025-09-06T12:53:54.052294Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AuctionStarted { auction_id: 1, total_energy: 27.0, reserve_price: 5.1 }
+🎯 Auction #1 started: 27.0 kWh at 5.1¢/kWh
+🔍 Aggregators querying BESS nodes for energy availability...
+[2m2025-09-06T12:53:54.052388Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 1, bess_id: 101 }
+❓ Aggregator 1 queries BESS Node 101
+[2m2025-09-06T12:53:54.112868Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 1, bess_id: 102 }
+❓ Aggregator 1 queries BESS Node 102
+[2m2025-09-06T12:53:54.174470Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 1, bess_id: 103 }
+❓ Aggregator 1 queries BESS Node 103
+[2m2025-09-06T12:53:54.235071Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 2, bess_id: 101 }
+❓ Aggregator 2 queries BESS Node 101
+[2m2025-09-06T12:53:54.306811Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 2, bess_id: 102 }
+❓ Aggregator 2 queries BESS Node 102
+[2m2025-09-06T12:53:54.378485Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 2, bess_id: 103 }
+❓ Aggregator 2 queries BESS Node 103
+[2m2025-09-06T12:53:54.449179Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 3, bess_id: 101 }
+❓ Aggregator 3 queries BESS Node 101
+[2m2025-09-06T12:53:54.530913Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 3, bess_id: 102 }
+❓ Aggregator 3 queries BESS Node 102
+[2m2025-09-06T12:53:54.612685Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 3, bess_id: 103 }
+❓ Aggregator 3 queries BESS Node 103
+[2m2025-09-06T12:53:54.694444Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 4, bess_id: 101 }
+❓ Aggregator 4 queries BESS Node 101
+[2m2025-09-06T12:53:54.785387Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 4, bess_id: 102 }
+❓ Aggregator 4 queries BESS Node 102
+[2m2025-09-06T12:53:54.876039Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 4, bess_id: 103 }
+❓ Aggregator 4 queries BESS Node 103
+[2m2025-09-06T12:53:54.968786Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 5, bess_id: 101 }
+❓ Aggregator 5 queries BESS Node 101
+[2m2025-09-06T12:53:55.070581Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 5, bess_id: 102 }
+❓ Aggregator 5 queries BESS Node 102
+[2m2025-09-06T12:53:55.173245Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 5, bess_id: 103 }
+❓ Aggregator 5 queries BESS Node 103
+📡 BESS nodes responding with energy availability...
+[2m2025-09-06T12:53:55.275128Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QueryResponse { bess_id: 101, energy_available: 8.0611431081, percentage_for_sale: 70.0 }
+📊 BESS Node 101: 8.1 kWh available (70% for sale)
+[2m2025-09-06T12:53:55.576012Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QueryResponse { bess_id: 102, energy_available: 10.0611431081, percentage_for_sale: 80.0 }
+📊 BESS Node 102: 10.1 kWh available (80% for sale)
+[2m2025-09-06T12:53:55.877247Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QueryResponse { bess_id: 103, energy_available: 12.0611431081, percentage_for_sale: 90.0 }
+📊 BESS Node 103: 12.1 kWh available (90% for sale)
+💰 Aggregators placing informed bids...
+[2m2025-09-06T12:53:56.178186Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { auction_id: 1, aggregator_id: 1, bess_id: 102, bid_price: 18.16, energy_amount: 3.0 }
+💰 Aggregator 1 bid 18.2¢/kWh for 3.0 kWh to BESS Node 102
+⏳ Aggregator 1 waiting 9.6 seconds before next action...
+[2m2025-09-06T12:54:05.779325Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { auction_id: 1, aggregator_id: 2, bess_id: 103, bid_price: 26.15, energy_amount: 4.0 }
+💰 Aggregator 2 bid 26.1¢/kWh for 4.0 kWh to BESS Node 103
+⏳ Aggregator 2 waiting 7.6 seconds before next action...
+[2m2025-09-06T12:54:13.370006Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { auction_id: 1, aggregator_id: 3, bess_id: 101, bid_price: 9.139999999999997, energy_amount: 5.0 }
+💰 Aggregator 3 bid 9.1¢/kWh for 5.0 kWh to BESS Node 101
+⏳ Aggregator 3 waiting 5.6 seconds before next action...
+[2m2025-09-06T12:54:18.951003Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { auction_id: 1, aggregator_id: 4, bess_id: 102, bid_price: 17.129999999999995, energy_amount: 6.0 }
+💰 Aggregator 4 bid 17.1¢/kWh for 6.0 kWh to BESS Node 102
+⏳ Aggregator 4 waiting 8.6 seconds before next action...
+[2m2025-09-06T12:54:27.522314Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { auction_id: 1, aggregator_id: 5, bess_id: 103, bid_price: 25.119999999999997, energy_amount: 7.0 }
+💰 Aggregator 5 bid 25.1¢/kWh for 7.0 kWh to BESS Node 103
+⏳ Aggregator 5 waiting 6.6 seconds before next action...
+[2m2025-09-06T12:54:34.083177Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidAccepted { auction_id: 1, aggregator_id: 3, bess_id: 102, final_price: 11.620000000000001, energy_amount: 4.0 }
+[2m2025-09-06T12:54:34.083229Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AuctionCompleted { auction_id: 1, winner_aggregator_id: 3, seller_bess_id: 102, energy_sold: 4.0, final_price: 11.620000000000001, total_value: 46.480000000000004, auction_duration_ms: 17000 }
+✅ Auction #1 completed: 4.0 kWh at 11.6¢/kWh (BESS 102: 6.1 kWh remaining)
+🏆 Winner: Aggregator 3 bought 4.0 kWh from BESS 102 for 11.6¢/kWh (Total: $0.46)
+⚖️ BESS nodes evaluating bids...
+❌ Rejecting Aggregator 1: Bid not competitive enough (bid: 18.2¢/kWh, requested: 3.0 kWh, available: 6.1 kWh)
+[2m2025-09-06T12:54:34.083280Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidRejected { aggregator_id: 1, bess_id: 102, reason: "Bid not competitive enough" }
+❌ Aggregator 1 bid rejected by BESS Node 102: Bid not competitive enough
+⏳ Aggregator 1 waiting 2.3 seconds after rejection...
+❌ Rejecting Aggregator 2: Bid not competitive enough (bid: 26.1¢/kWh, requested: 4.0 kWh, available: 12.1 kWh)
+[2m2025-09-06T12:54:36.384956Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidRejected { aggregator_id: 2, bess_id: 103, reason: "Bid not competitive enough" }
+❌ Aggregator 2 bid rejected by BESS Node 103: Bid not competitive enough
+⏳ Aggregator 2 waiting 2.2 seconds after rejection...
+❌ Rejecting Aggregator 4: BESS node capacity exceeded (bid: 17.1¢/kWh, requested: 6.0 kWh, available: 6.1 kWh)
+[2m2025-09-06T12:54:38.580342Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidRejected { aggregator_id: 4, bess_id: 102, reason: "BESS node capacity exceeded" }
+❌ Aggregator 4 bid rejected by BESS Node 102: BESS node capacity exceeded
+⏳ Aggregator 4 waiting 5.0 seconds after rejection...
+❌ Rejecting Aggregator 5: Bid not competitive enough (bid: 25.1¢/kWh, requested: 7.0 kWh, available: 12.1 kWh)
+[2m2025-09-06T12:54:43.551672Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidRejected { aggregator_id: 5, bess_id: 103, reason: "Bid not competitive enough" }
+❌ Aggregator 5 bid rejected by BESS Node 103: Bid not competitive enough
+⏳ Aggregator 5 waiting 4.9 seconds after rejection...
+[2m2025-09-06T12:54:48.413455Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BESSNodeStatus { device_id: 101, energy_available: 8.0611431081, battery_health: 0, is_online: true }
+[2m2025-09-06T12:54:48.413532Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BESSNodeStatus { device_id: 102, energy_available: 6.0611431081, battery_health: 1, is_online: true }
+[2m2025-09-06T12:54:48.413556Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BESSNodeStatus { device_id: 103, energy_available: 12.0611431081, battery_health: 2, is_online: true }
+[2m2025-09-06T12:54:48.413575Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: EnergyRecharged { bess_id: 103, energy_added: 0.0, new_total: 12.0611431081, energy_percentage: 80.40762072066666 }
+🔋 BESS Node 103 recharged to 12.1 kWh (80.4%)
+[2m2025-09-06T12:54:48.413611Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AggregatorStatus { device_id: 201, strategy: "Conservative", success_rate: 70.0, total_bids: 3, successful_bids: 2, total_energy_bought: 8.0, average_bid_price: 7.0, is_online: true }
+[2m2025-09-06T12:54:48.413635Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AggregatorStatus { device_id: 202, strategy: "Aggressive", success_rate: 75.0, total_bids: 3, successful_bids: 2, total_energy_bought: 8.0, average_bid_price: 9.0, is_online: true }
+[2m2025-09-06T12:54:48.413697Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AggregatorStatus { device_id: 203, strategy: "Intelligent", success_rate: 80.0, total_bids: 3, successful_bids: 2, total_energy_bought: 8.0, average_bid_price: 11.0, is_online: true }
+[2m2025-09-06T12:54:48.413720Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AggregatorStatus { device_id: 204, strategy: "Random", success_rate: 85.0, total_bids: 3, successful_bids: 2, total_energy_bought: 8.0, average_bid_price: 13.0, is_online: true }
+[2m2025-09-06T12:54:48.413742Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AggregatorStatus { device_id: 205, strategy: "Conservative", success_rate: 65.0, total_bids: 3, successful_bids: 1, total_energy_bought: 4.0, average_bid_price: 15.0, is_online: true }
+[2m2025-09-06T12:54:48.413764Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: SystemMetrics { total_auctions: 1, total_bids: 3, avg_price_improvement_percent: 205.0, active_bess_nodes: 3, active_aggregators: 5 }
+⏳ Waiting 3.8 seconds before next auction...
+[2m2025-09-06T12:54:52.235058Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AuctionStarted { auction_id: 2, total_energy: 21.0, reserve_price: 5.2 }
+🎯 Auction #2 started: 21.0 kWh at 5.2¢/kWh
+🔍 Aggregators querying BESS nodes for energy availability...
+[2m2025-09-06T12:54:52.235161Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 1, bess_id: 101 }
+❓ Aggregator 1 queries BESS Node 101
+[2m2025-09-06T12:54:52.296899Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 1, bess_id: 102 }
+❓ Aggregator 1 queries BESS Node 102
+[2m2025-09-06T12:54:52.358721Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 1, bess_id: 103 }
+❓ Aggregator 1 queries BESS Node 103
+[2m2025-09-06T12:54:52.420567Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 2, bess_id: 101 }
+❓ Aggregator 2 queries BESS Node 101
+[2m2025-09-06T12:54:52.492532Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 2, bess_id: 102 }
+❓ Aggregator 2 queries BESS Node 102
+[2m2025-09-06T12:54:52.563279Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 2, bess_id: 103 }
+❓ Aggregator 2 queries BESS Node 103
+[2m2025-09-06T12:54:52.634894Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 3, bess_id: 101 }
+❓ Aggregator 3 queries BESS Node 101
+[2m2025-09-06T12:54:52.716013Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 3, bess_id: 102 }
+❓ Aggregator 3 queries BESS Node 102
+[2m2025-09-06T12:54:52.797707Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 3, bess_id: 103 }
+❓ Aggregator 3 queries BESS Node 103
+[2m2025-09-06T12:54:52.879452Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 4, bess_id: 101 }
+❓ Aggregator 4 queries BESS Node 101
+[2m2025-09-06T12:54:52.969880Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 4, bess_id: 102 }
+❓ Aggregator 4 queries BESS Node 102
+[2m2025-09-06T12:54:53.061651Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 4, bess_id: 103 }
+❓ Aggregator 4 queries BESS Node 103
+[2m2025-09-06T12:54:53.154594Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 5, bess_id: 101 }
+❓ Aggregator 5 queries BESS Node 101
+[2m2025-09-06T12:54:53.256882Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 5, bess_id: 102 }
+❓ Aggregator 5 queries BESS Node 102
+[2m2025-09-06T12:54:53.359808Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 5, bess_id: 103 }
+❓ Aggregator 5 queries BESS Node 103
+📡 BESS nodes responding with energy availability...
+[2m2025-09-06T12:54:53.462684Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QueryResponse { bess_id: 101, energy_available: 10.970520995, percentage_for_sale: 70.0 }
+📊 BESS Node 101: 11.0 kWh available (70% for sale)
+[2m2025-09-06T12:54:53.764385Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QueryResponse { bess_id: 102, energy_available: 8.970520995, percentage_for_sale: 80.0 }
+📊 BESS Node 102: 9.0 kWh available (80% for sale)
+[2m2025-09-06T12:54:54.065588Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QueryResponse { bess_id: 103, energy_available: 14.970520995, percentage_for_sale: 90.0 }
+📊 BESS Node 103: 15.0 kWh available (90% for sale)
+💰 Aggregators placing informed bids...
+[2m2025-09-06T12:54:54.367791Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { auction_id: 2, aggregator_id: 1, bess_id: 102, bid_price: 23.33, energy_amount: 3.0 }
+💰 Aggregator 1 bid 23.3¢/kWh for 3.0 kWh to BESS Node 102
+⏳ Aggregator 1 waiting 6.2 seconds before next action...
+[2m2025-09-06T12:55:00.579041Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { auction_id: 2, aggregator_id: 2, bess_id: 103, bid_price: 6.32, energy_amount: 4.0 }
+💰 Aggregator 2 bid 6.3¢/kWh for 4.0 kWh to BESS Node 103
+⏳ Aggregator 2 waiting 9.2 seconds before next action...
+[2m2025-09-06T12:55:09.780617Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { auction_id: 2, aggregator_id: 3, bess_id: 101, bid_price: 14.309999999999995, energy_amount: 5.0 }
+💰 Aggregator 3 bid 14.3¢/kWh for 5.0 kWh to BESS Node 101
+⏳ Aggregator 3 waiting 7.2 seconds before next action...
+[2m2025-09-06T12:55:16.985908Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { auction_id: 2, aggregator_id: 4, bess_id: 102, bid_price: 22.299999999999997, energy_amount: 6.0 }
+💰 Aggregator 4 bid 22.3¢/kWh for 6.0 kWh to BESS Node 102
+⏳ Aggregator 4 waiting 5.2 seconds before next action...
+[2m2025-09-06T12:55:22.166956Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { auction_id: 2, aggregator_id: 5, bess_id: 103, bid_price: 5.289999999999999, energy_amount: 7.0 }
+💰 Aggregator 5 bid 5.3¢/kWh for 7.0 kWh to BESS Node 103
+⏳ Aggregator 5 waiting 8.2 seconds before next action...
+[2m2025-09-06T12:55:25.483289Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m WebSocket client 8ed94376-0a62-42a1-aa27-7032ec1f2b4f connected
+[2m2025-09-06T12:55:25.496702Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m WebSocket client f81e379b-3571-41b0-98b0-8f43fa2b5fb9 connected
+[2m2025-09-06T12:55:25.496949Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m WebSocket client 8ed94376-0a62-42a1-aa27-7032ec1f2b4f disconnected
+[2m2025-09-06T12:55:30.338590Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidAccepted { auction_id: 2, aggregator_id: 3, bess_id: 103, final_price: 23.21, energy_amount: 4.0 }
+[2m2025-09-06T12:55:30.338655Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AuctionCompleted { auction_id: 2, winner_aggregator_id: 3, seller_bess_id: 103, energy_sold: 4.0, final_price: 23.21, total_value: 92.84, auction_duration_ms: 19000 }
+✅ Auction #2 completed: 4.0 kWh at 23.2¢/kWh (BESS 103: 11.0 kWh remaining)
+🏆 Winner: Aggregator 3 bought 4.0 kWh from BESS 103 for 23.2¢/kWh (Total: $0.93)
+⚖️ BESS nodes evaluating bids...
+❌ Rejecting Aggregator 1: Bid not competitive enough (bid: 23.3¢/kWh, requested: 3.0 kWh, available: 9.0 kWh)
+[2m2025-09-06T12:55:30.338730Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidRejected { aggregator_id: 1, bess_id: 102, reason: "Bid not competitive enough" }
+❌ Aggregator 1 bid rejected by BESS Node 102: Bid not competitive enough
+⏳ Aggregator 1 waiting 2.7 seconds after rejection...
+❌ Rejecting Aggregator 2: Bid price below reserve price (bid: 6.3¢/kWh, requested: 4.0 kWh, available: 11.0 kWh)
+[2m2025-09-06T12:55:33.050548Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidRejected { aggregator_id: 2, bess_id: 103, reason: "Bid price below reserve price" }
+❌ Aggregator 2 bid rejected by BESS Node 103: Bid price below reserve price
+⏳ Aggregator 2 waiting 2.6 seconds after rejection...
+❌ Rejecting Aggregator 4: Bid not competitive enough (bid: 22.3¢/kWh, requested: 6.0 kWh, available: 9.0 kWh)
+[2m2025-09-06T12:55:35.652538Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidRejected { aggregator_id: 4, bess_id: 102, reason: "Bid not competitive enough" }
+❌ Aggregator 4 bid rejected by BESS Node 102: Bid not competitive enough
+⏳ Aggregator 4 waiting 2.4 seconds after rejection...
+❌ Rejecting Aggregator 5: Bid price below reserve price (bid: 5.3¢/kWh, requested: 7.0 kWh, available: 11.0 kWh)
+[2m2025-09-06T12:55:38.033110Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidRejected { aggregator_id: 5, bess_id: 103, reason: "Bid price below reserve price" }
+❌ Aggregator 5 bid rejected by BESS Node 103: Bid price below reserve price
+⏳ Aggregator 5 waiting 2.3 seconds after rejection...
+[2m2025-09-06T12:55:40.304877Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BESSNodeStatus { device_id: 101, energy_available: 10.970520995, battery_health: 0, is_online: true }
+[2m2025-09-06T12:55:40.304952Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BESSNodeStatus { device_id: 102, energy_available: 8.970520995, battery_health: 1, is_online: true }
+[2m2025-09-06T12:55:40.304976Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BESSNodeStatus { device_id: 103, energy_available: 10.970520995, battery_health: 2, is_online: true }
+[2m2025-09-06T12:55:40.305001Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AggregatorStatus { device_id: 201, strategy: "Conservative", success_rate: 70.0, total_bids: 6, successful_bids: 4, total_energy_bought: 16.0, average_bid_price: 7.0, is_online: true }
+[2m2025-09-06T12:55:40.305029Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AggregatorStatus { device_id: 202, strategy: "Aggressive", success_rate: 75.0, total_bids: 6, successful_bids: 4, total_energy_bought: 16.0, average_bid_price: 9.0, is_online: true }
+[2m2025-09-06T12:55:40.305053Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AggregatorStatus { device_id: 203, strategy: "Intelligent", success_rate: 80.0, total_bids: 6, successful_bids: 4, total_energy_bought: 16.0, average_bid_price: 11.0, is_online: true }
+[2m2025-09-06T12:55:40.305124Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AggregatorStatus { device_id: 204, strategy: "Random", success_rate: 85.0, total_bids: 6, successful_bids: 5, total_energy_bought: 20.0, average_bid_price: 13.0, is_online: true }
+[2m2025-09-06T12:55:40.305164Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AggregatorStatus { device_id: 205, strategy: "Conservative", success_rate: 65.0, total_bids: 6, successful_bids: 3, total_energy_bought: 12.0, average_bid_price: 15.0, is_online: true }
+[2m2025-09-06T12:55:40.305186Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: SystemMetrics { total_auctions: 2, total_bids: 6, avg_price_improvement_percent: 210.0, active_bess_nodes: 3, active_aggregators: 5 }
+⏳ Waiting 4.7 seconds before next auction...
+[2m2025-09-06T12:55:45.036147Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AuctionStarted { auction_id: 3, total_energy: 28.0, reserve_price: 5.3 }
+🎯 Auction #3 started: 28.0 kWh at 5.3¢/kWh
+🔍 Aggregators querying BESS nodes for energy availability...
+[2m2025-09-06T12:55:45.036231Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 1, bess_id: 101 }
+❓ Aggregator 1 queries BESS Node 101
+[2m2025-09-06T12:55:45.096933Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 1, bess_id: 102 }
+❓ Aggregator 1 queries BESS Node 102
+[2m2025-09-06T12:55:45.158674Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 1, bess_id: 103 }
+❓ Aggregator 1 queries BESS Node 103
+[2m2025-09-06T12:55:45.220372Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 2, bess_id: 101 }
+❓ Aggregator 2 queries BESS Node 101
+[2m2025-09-06T12:55:45.291343Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 2, bess_id: 102 }
+❓ Aggregator 2 queries BESS Node 102
+[2m2025-09-06T12:55:45.362169Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 2, bess_id: 103 }
+❓ Aggregator 2 queries BESS Node 103
+[2m2025-09-06T12:55:45.433005Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 3, bess_id: 101 }
+❓ Aggregator 3 queries BESS Node 101
+[2m2025-09-06T12:55:45.513760Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 3, bess_id: 102 }
+❓ Aggregator 3 queries BESS Node 102
+[2m2025-09-06T12:55:45.595593Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 3, bess_id: 103 }
+❓ Aggregator 3 queries BESS Node 103
+[2m2025-09-06T12:55:45.677451Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 4, bess_id: 101 }
+❓ Aggregator 4 queries BESS Node 101
+[2m2025-09-06T12:55:45.768304Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 4, bess_id: 102 }
+❓ Aggregator 4 queries BESS Node 102
+[2m2025-09-06T12:55:45.859097Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 4, bess_id: 103 }
+❓ Aggregator 4 queries BESS Node 103
+[2m2025-09-06T12:55:45.951967Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 5, bess_id: 101 }
+❓ Aggregator 5 queries BESS Node 101
+[2m2025-09-06T12:55:46.052906Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 5, bess_id: 102 }
+❓ Aggregator 5 queries BESS Node 102
+[2m2025-09-06T12:55:46.154873Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 5, bess_id: 103 }
+❓ Aggregator 5 queries BESS Node 103
+📡 BESS nodes responding with energy availability...
+[2m2025-09-06T12:55:46.258032Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QueryResponse { bess_id: 101, energy_available: 13.610288149799999, percentage_for_sale: 70.0 }
+📊 BESS Node 101: 13.6 kWh available (70% for sale)
+[2m2025-09-06T12:55:46.558880Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QueryResponse { bess_id: 102, energy_available: 11.610288149799999, percentage_for_sale: 80.0 }
+📊 BESS Node 102: 11.6 kWh available (80% for sale)
+[2m2025-09-06T12:55:46.859986Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QueryResponse { bess_id: 103, energy_available: 13.610288149799999, percentage_for_sale: 90.0 }
+📊 BESS Node 103: 13.6 kWh available (90% for sale)
+💰 Aggregators placing informed bids...
+[2m2025-09-06T12:55:47.161233Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { auction_id: 3, aggregator_id: 1, bess_id: 102, bid_price: 28.5, energy_amount: 3.0 }
+💰 Aggregator 1 bid 28.5¢/kWh for 3.0 kWh to BESS Node 102
+⏳ Aggregator 1 waiting 7.8 seconds before next action...
+[2m2025-09-06T12:55:54.982222Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { auction_id: 3, aggregator_id: 2, bess_id: 103, bid_price: 11.489999999999998, energy_amount: 4.0 }
+💰 Aggregator 2 bid 11.5¢/kWh for 4.0 kWh to BESS Node 103
+⏳ Aggregator 2 waiting 5.8 seconds before next action...
+[2m2025-09-06T12:56:00.793134Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { auction_id: 3, aggregator_id: 3, bess_id: 101, bid_price: 19.479999999999997, energy_amount: 5.0 }
+💰 Aggregator 3 bid 19.5¢/kWh for 5.0 kWh to BESS Node 101
+⏳ Aggregator 3 waiting 8.8 seconds before next action...
+[2m2025-09-06T12:56:09.594062Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { auction_id: 3, aggregator_id: 4, bess_id: 102, bid_price: 27.47, energy_amount: 6.0 }
+💰 Aggregator 4 bid 27.5¢/kWh for 6.0 kWh to BESS Node 102
+⏳ Aggregator 4 waiting 6.8 seconds before next action...
+[2m2025-09-06T12:56:16.385268Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { auction_id: 3, aggregator_id: 5, bess_id: 103, bid_price: 10.459999999999994, energy_amount: 7.0 }
+💰 Aggregator 5 bid 10.5¢/kWh for 7.0 kWh to BESS Node 103
+⏳ Aggregator 5 waiting 9.8 seconds before next action...
+[2m2025-09-06T12:56:26.169885Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidAccepted { auction_id: 3, aggregator_id: 3, bess_id: 101, final_price: 12.799999999999997, energy_amount: 4.0 }
+[2m2025-09-06T12:56:26.169957Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AuctionCompleted { auction_id: 3, winner_aggregator_id: 3, seller_bess_id: 101, energy_sold: 4.0, final_price: 12.799999999999997, total_value: 51.19999999999999, auction_duration_ms: 21000 }
+✅ Auction #3 completed: 4.0 kWh at 12.8¢/kWh (BESS 101: 9.6 kWh remaining)
+🏆 Winner: Aggregator 3 bought 4.0 kWh from BESS 101 for 12.8¢/kWh (Total: $0.51)
+⚖️ BESS nodes evaluating bids...
+❌ Rejecting Aggregator 1: Bid not competitive enough (bid: 28.5¢/kWh, requested: 3.0 kWh, available: 11.6 kWh)
+[2m2025-09-06T12:56:26.170081Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidRejected { aggregator_id: 1, bess_id: 102, reason: "Bid not competitive enough" }
+❌ Aggregator 1 bid rejected by BESS Node 102: Bid not competitive enough
+⏳ Aggregator 1 waiting 3.1 seconds after rejection...
+❌ Rejecting Aggregator 2: Bid not competitive enough (bid: 11.5¢/kWh, requested: 4.0 kWh, available: 13.6 kWh)
+[2m2025-09-06T12:56:29.302221Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidRejected { aggregator_id: 2, bess_id: 103, reason: "Bid not competitive enough" }
+❌ Aggregator 2 bid rejected by BESS Node 103: Bid not competitive enough
+⏳ Aggregator 2 waiting 3.0 seconds after rejection...
+❌ Rejecting Aggregator 4: Bid not competitive enough (bid: 27.5¢/kWh, requested: 6.0 kWh, available: 11.6 kWh)
+[2m2025-09-06T12:56:32.313153Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidRejected { aggregator_id: 4, bess_id: 102, reason: "Bid not competitive enough" }
+❌ Aggregator 4 bid rejected by BESS Node 102: Bid not competitive enough
+⏳ Aggregator 4 waiting 2.8 seconds after rejection...
+❌ Rejecting Aggregator 5: Bid not competitive enough (bid: 10.5¢/kWh, requested: 7.0 kWh, available: 13.6 kWh)
+[2m2025-09-06T12:56:35.104653Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidRejected { aggregator_id: 5, bess_id: 103, reason: "Bid not competitive enough" }
+❌ Aggregator 5 bid rejected by BESS Node 103: Bid not competitive enough
+⏳ Aggregator 5 waiting 2.7 seconds after rejection...
+[2m2025-09-06T12:56:37.786825Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BESSNodeStatus { device_id: 101, energy_available: 9.610288149799999, battery_health: 0, is_online: true }
+[2m2025-09-06T12:56:37.786889Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BESSNodeStatus { device_id: 102, energy_available: 11.610288149799999, battery_health: 1, is_online: true }
+[2m2025-09-06T12:56:37.786919Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BESSNodeStatus { device_id: 103, energy_available: 13.610288149799999, battery_health: 2, is_online: true }
+[2m2025-09-06T12:56:37.786938Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: EnergyRecharged { bess_id: 103, energy_added: 0.0, new_total: 13.610288149799999, energy_percentage: 90.735254332 }
+🔋 BESS Node 103 recharged to 13.6 kWh (90.7%)
+[2m2025-09-06T12:56:37.786968Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AggregatorStatus { device_id: 201, strategy: "Conservative", success_rate: 70.0, total_bids: 9, successful_bids: 6, total_energy_bought: 24.0, average_bid_price: 7.0, is_online: true }
+[2m2025-09-06T12:56:37.786990Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AggregatorStatus { device_id: 202, strategy: "Aggressive", success_rate: 75.0, total_bids: 9, successful_bids: 6, total_energy_bought: 24.0, average_bid_price: 9.0, is_online: true }
+[2m2025-09-06T12:56:37.787009Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AggregatorStatus { device_id: 203, strategy: "Intelligent", success_rate: 80.0, total_bids: 9, successful_bids: 7, total_energy_bought: 28.0, average_bid_price: 11.0, is_online: true }
+[2m2025-09-06T12:56:37.787027Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AggregatorStatus { device_id: 204, strategy: "Random", success_rate: 85.0, total_bids: 9, successful_bids: 7, total_energy_bought: 28.0, average_bid_price: 13.0, is_online: true }
+[2m2025-09-06T12:56:37.787045Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AggregatorStatus { device_id: 205, strategy: "Conservative", success_rate: 65.0, total_bids: 9, successful_bids: 5, total_energy_bought: 20.0, average_bid_price: 15.0, is_online: true }
+[2m2025-09-06T12:56:37.787083Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: SystemMetrics { total_auctions: 3, total_bids: 9, avg_price_improvement_percent: 215.0, active_bess_nodes: 3, active_aggregators: 5 }
+⏳ Waiting 5.6 seconds before next auction...
+[2m2025-09-06T12:56:43.428907Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: AuctionStarted { auction_id: 4, total_energy: 28.0, reserve_price: 5.4 }
+🎯 Auction #4 started: 28.0 kWh at 5.4¢/kWh
+🔍 Aggregators querying BESS nodes for energy availability...
+[2m2025-09-06T12:56:43.429009Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 1, bess_id: 101 }
+❓ Aggregator 1 queries BESS Node 101
+[2m2025-09-06T12:56:43.490883Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 1, bess_id: 102 }
+❓ Aggregator 1 queries BESS Node 102
+[2m2025-09-06T12:56:43.552696Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 1, bess_id: 103 }
+❓ Aggregator 1 queries BESS Node 103
+[2m2025-09-06T12:56:43.614500Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 2, bess_id: 101 }
+❓ Aggregator 2 queries BESS Node 101
+[2m2025-09-06T12:56:43.685509Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 2, bess_id: 102 }
+❓ Aggregator 2 queries BESS Node 102
+[2m2025-09-06T12:56:43.757452Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 2, bess_id: 103 }
+❓ Aggregator 2 queries BESS Node 103
+[2m2025-09-06T12:56:43.828000Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 3, bess_id: 101 }
+❓ Aggregator 3 queries BESS Node 101
+[2m2025-09-06T12:56:43.909841Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 3, bess_id: 102 }
+❓ Aggregator 3 queries BESS Node 102
+[2m2025-09-06T12:56:43.991847Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 3, bess_id: 103 }
+❓ Aggregator 3 queries BESS Node 103
+[2m2025-09-06T12:56:44.073658Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 4, bess_id: 101 }
+❓ Aggregator 4 queries BESS Node 101
+[2m2025-09-06T12:56:44.165597Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 4, bess_id: 102 }
+❓ Aggregator 4 queries BESS Node 102
+[2m2025-09-06T12:56:44.257514Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 4, bess_id: 103 }
+❓ Aggregator 4 queries BESS Node 103
+[2m2025-09-06T12:56:44.349496Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 5, bess_id: 101 }
+❓ Aggregator 5 queries BESS Node 101
+[2m2025-09-06T12:56:44.450296Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 5, bess_id: 102 }
+❓ Aggregator 5 queries BESS Node 102
+[2m2025-09-06T12:56:44.552097Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QuerySent { aggregator_id: 5, bess_id: 103 }
+❓ Aggregator 5 queries BESS Node 103
+📡 BESS nodes responding with energy availability...
+[2m2025-09-06T12:56:44.654548Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QueryResponse { bess_id: 101, energy_available: 12.53011287095, percentage_for_sale: 70.0 }
+📊 BESS Node 101: 12.5 kWh available (70% for sale)
+[2m2025-09-06T12:56:44.956189Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QueryResponse { bess_id: 102, energy_available: 14.53011287095, percentage_for_sale: 80.0 }
+📊 BESS Node 102: 14.5 kWh available (80% for sale)
+[2m2025-09-06T12:56:45.257163Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: QueryResponse { bess_id: 103, energy_available: 15.0, percentage_for_sale: 90.0 }
+📊 BESS Node 103: 15.0 kWh available (90% for sale)
+💰 Aggregators placing informed bids...
+[2m2025-09-06T12:56:45.558048Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { auction_id: 4, aggregator_id: 1, bess_id: 102, bid_price: 8.669999999999998, energy_amount: 3.0 }
+💰 Aggregator 1 bid 8.7¢/kWh for 3.0 kWh to BESS Node 102
+⏳ Aggregator 1 waiting 9.4 seconds before next action...
+[2m2025-09-06T12:56:54.989486Z[0m [32m INFO[0m [2menergy_trading::network::websocket_gateway[0m[2m:[0m Broadcasted event: BidPlaced { auction_id: 4, aggregator_id: 2, bess_id: 103, bid_price: 16.659999999999997, energy_amount: 4.0 }
+💰 Aggregator 2 bid 16.7¢/kWh for 4.0 kWh to BESS Node 103
+⏳ Aggregator 2 waiting 7.4 seconds before next action...

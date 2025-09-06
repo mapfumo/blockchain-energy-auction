@@ -41,8 +41,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let mut last_recharge_time = Instant::now();
         
         loop {
-            // Generate auction events
-            let total_energy = 100.0 + (auction_id as f64 * 2.0) % 20.0; // 100-120 kWh
+            // Calculate realistic total energy based on actual BESS availability
+            let total_available_energy: f64 = bess_energy_levels.iter().sum();
+            let total_energy = if total_available_energy > 0.0 {
+                // Use actual available energy with some variation (80-100% of available)
+                let variation = 0.8 + ((auction_id as f64 * 0.1) % 0.2); // 0.8-1.0
+                (total_available_energy * variation).round()
+            } else {
+                0.0 // No energy available
+            };
             let reserve_price = 5.0 + (auction_id as f64 * 0.1) % 10.0; // 5-15 c/kWh (realistic Australian FiT)
             
             // Broadcast auction started event
@@ -81,14 +88,27 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             
             for bess_id in 101..=103 {
                 let bess_index = (bess_id - 101) as usize;
+                let energy_percentage = (bess_energy_levels[bess_index] / 15.0) * 100.0;
                 
-                // Recharge energy over time (simulating solar charging)
-                let recharge_rate = 0.05; // 0.05 kWh per second
+                // Enhanced recharge logic: 5% per second when below 10% capacity
+                let recharge_rate = if energy_percentage < 10.0 {
+                    0.75 // 5% of 15kWh = 0.75 kWh per second (fast recharge when critical)
+                } else {
+                    0.05 // 0.05 kWh per second (normal solar charging)
+                };
+                
                 let recharge_amount = recharge_rate * time_elapsed;
                 bess_energy_levels[bess_index] = (bess_energy_levels[bess_index] + recharge_amount).min(15.0); // Max 15 kWh
                 
                 let energy_available = bess_energy_levels[bess_index];
+                let new_energy_percentage = (energy_available / 15.0) * 100.0;
                 let percentage_for_sale = 70.0 + ((bess_id - 101) as f64 * 10.0); // 70-90%
+                
+                // Log enhanced recharge when critical
+                if energy_percentage < 10.0 && new_energy_percentage > energy_percentage {
+                    println!("⚡ BESS Node {} critical recharge: {:.1}% → {:.1}% ({:.1} kWh)", 
+                             bess_id, energy_percentage, new_energy_percentage, energy_available);
+                }
                 
                 let response_event = SystemEvent::QueryResponse {
                     bess_id: bess_id as u64,
@@ -117,7 +137,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 event_gateway.broadcast_event(bid_event).await.unwrap();
                 println!("💰 Aggregator {} bid {:.1}¢/kWh for {:.1} kWh to BESS Node {}", i, bid_price, energy_amount, target_bess);
                 
-                sleep(Duration::from_secs(1)).await;
+                // Random delay between 5-10 seconds after each bid
+                let bid_delay = 5.0 + ((auction_id * 7 + i as u64 * 13) as f64 * 0.23) % 5.0; // 5-10 seconds
+                println!("⏳ Aggregator {} waiting {:.1} seconds before next action...", i, bid_delay);
+                sleep(Duration::from_secs_f64(bid_delay)).await;
             }
 
             // Accept the best bid (highest price) and deplete energy
@@ -138,8 +161,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 energy_amount,
             };
             event_gateway.broadcast_event(accept_event).await.unwrap();
+            
+            // Send detailed auction completion event
+            let total_value = final_price * energy_amount;
+            let auction_duration_ms = 15000 + (auction_id as u64 * 2000) % 10000; // 15-25 seconds
+            let completed_event = SystemEvent::AuctionCompleted {
+                auction_id: auction_id as u64,
+                winner_aggregator_id: 3,
+                seller_bess_id: winning_bess as u64,
+                energy_sold: energy_amount,
+                final_price,
+                total_value,
+                auction_duration_ms,
+            };
+            event_gateway.broadcast_event(completed_event).await.unwrap();
+            
             println!("✅ Auction #{} completed: {:.1} kWh at {:.1}¢/kWh (BESS {}: {:.1} kWh remaining)", 
                      auction_id, energy_amount, final_price, winning_bess, bess_energy_levels[bess_index]);
+            println!("🏆 Winner: Aggregator {} bought {:.1} kWh from BESS {} for {:.1}¢/kWh (Total: ${:.2})", 
+                     3, energy_amount, winning_bess, final_price, total_value / 100.0);
 
             // Check if BESS is depleted and send event
             if bess_energy_levels[bess_index] <= 0.1 {
@@ -160,16 +200,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let energy_requested = 2.0 + (i as f64 * 1.0);
                     let bid_price = 5.0 + ((auction_id * 11 + i as u64 * 17) as f64 * 0.47) % 25.0;
                     
-                    // Realistic rejection reasons based on query responses
+                    // Get actual available energy for the target BESS
+                    let bess_index = (target_bess - 101) as usize;
+                    let available_energy = bess_energy_levels[bess_index];
+                    
+                    // Realistic rejection reasons based on actual energy availability
                     let reason = if bid_price < 8.0 {
                         "Bid price below reserve price"
+                    } else if energy_requested > available_energy {
+                        "BESS node capacity exceeded"
+                    } else if energy_requested > (available_energy - 0.5) {
+                        "BESS node capacity exceeded" // Too close to available energy
                     } else if energy_requested > 10.0 {
                         "Insufficient energy available"
-                    } else if i % 2 == 0 {
-                        "BESS node capacity exceeded"
                     } else {
                         "Bid not competitive enough"
                     };
+                    
+                    println!("❌ Rejecting Aggregator {}: {} (bid: {:.1}¢/kWh, requested: {:.1} kWh, available: {:.1} kWh)", 
+                             i, reason, bid_price, energy_requested, available_energy);
                     
                     let reject_event = SystemEvent::BidRejected {
                         aggregator_id: i as u64,
@@ -178,7 +227,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     };
                     event_gateway.broadcast_event(reject_event).await.unwrap();
                     println!("❌ Aggregator {} bid rejected by BESS Node {}: {}", i, target_bess, reason);
-                    sleep(Duration::from_millis(500)).await;
+                    
+                    // Random delay after rejection (2-5 seconds)
+                    let rejection_delay = 2.0 + ((auction_id * 11 + i as u64 * 19) as f64 * 0.31) % 3.0; // 2-5 seconds
+                    println!("⏳ Aggregator {} waiting {:.1} seconds after rejection...", i, rejection_delay);
+                    sleep(Duration::from_secs_f64(rejection_delay)).await;
                 }
             }
 

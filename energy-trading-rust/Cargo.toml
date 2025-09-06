@@ -17,7 +17,8 @@ axum = { version = "0.7", features = ["ws", "macros"] }
 tower-http = { version = "0.5", features = ["cors"] }
 
 # Database
-sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "chrono", "uuid"] }
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "chrono", "uuid", "bigdecimal"] }
+bigdecimal = "0.4"
 
 # Logging
 tracing = "0.1"

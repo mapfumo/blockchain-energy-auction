@@ -352,6 +352,9 @@ Migration of Golang energy auction prototype to production-ready Rust/Solana sys
 - [x] **Advanced Monitoring**: Node selectors, detailed popups, live events, and real-time metrics
 - [x] **ETP Query Flow Implementation**: Real ETP protocol with Query/QueryResponse events
 - [x] **Realistic Query Timing**: Random 2-10 second delays between auctions, no constant querying
+- [x] **Energy Depletion System**: BESS energy depletion after successful bids and recharge simulation
+- [x] **Enhanced Simulation Timing**: Critical recharge (5%/sec below 10%) and random 5-10 second delays between bids
+- [x] **Smart Rejection Logic**: Intelligent bid evaluation with capacity and safety constraints
 - [x] **Enhanced Aggregator Metrics**: Successful bids, total energy bought, and detailed performance tracking
 - [x] **Bid Rejection Logic**: Realistic rejection reasons based on actual energy availability and query responses
 

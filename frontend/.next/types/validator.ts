@@ -51,12 +51,6 @@ type PagesPageConfig = {
   handler satisfies PagesPageConfig
 }
 
-// Validate ../../src/pages/theme-test.tsx
-{
-  const handler = {} as typeof import("../../src/pages/theme-test.js")
-  handler satisfies PagesPageConfig
-}
-
 // Validate ../../src/pages/websocket-test.tsx
 {
   const handler = {} as typeof import("../../src/pages/websocket-test.js")

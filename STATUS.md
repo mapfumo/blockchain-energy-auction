@@ -2,7 +2,7 @@
 
 ## 🎯 Project Overview
 
-**Status**: Phase 2 Complete - Production-Ready Frontend with Competitive Pricing Demonstration
+**Status**: Phase 2 Complete - Production-Ready Frontend with Enhanced Simulation Timing
 
 **Last Updated**: September 6, 2025
 
@@ -22,6 +22,7 @@
 - **Real-time Monitoring**: WebSocket integration with live auction data
 - **Professional UI/UX**: Logo, themes, keyboard shortcuts, error handling
 - **Advanced Features**: Node selectors, detailed popups, live events panel
+- **High Contrast Text**: Colorful auction details (blue/green/purple/orange) for excellent readability
 - **Mobile Responsive**: Touch-friendly design with dark/light themes
 
 ### 3. **Competitive Pricing Demonstration**
@@ -37,6 +38,29 @@
 - **Realistic Timing**: Random 2-10 second delays between auctions (no constant querying)
 - **Enhanced Metrics**: Successful bids, total energy bought, detailed performance tracking
 - **Smart Rejection Logic**: Rejections based on actual energy availability and query responses
+
+### 5. **Energy Management System**
+
+- **Energy Depletion**: BESS nodes deplete energy after successful bids (realistic energy levels)
+- **Enhanced Recharge**: Critical recharge at 5%/second when below 10% capacity, normal solar charging otherwise
+- **Energy Status Levels**: Critical (<10%), Low (10-25%), Normal (25-75%), High (>75%)
+- **Smart Pricing**: Dynamic reserve prices based on energy status (2x when critical, 0.9x when high)
+- **Energy Events**: EnergyDepleted and EnergyRecharged events for real-time monitoring
+
+### 6. **Enhanced Simulation Timing**
+
+- **Realistic Delays**: Random 5-10 second delays between aggregator bids
+- **Rejection Delays**: Random 2-5 second delays after bid rejections
+- **Critical Recharge**: Emergency 5%/second recharge when BESS energy drops below 10%
+- **Sequential Bidding**: Aggregators wait between actions for realistic simulation pace
+
+### 7. **Intelligent Bid Rejection System**
+
+- **Smart Rejections**: Hierarchical bid evaluation with capacity and safety constraints
+- **Realistic Trading**: Simulates real-world energy market constraints and safety requirements
+- **Safety Buffer**: Prevents BESS nodes from being completely drained (0.5 kWh buffer)
+- **Price Validation**: Minimum 8¢/kWh threshold for bid acceptance
+- **Documentation**: Detailed logic documented in `docs/REJECTION_LOGIC.md`
 
 ## 🔧 Technical Implementation
 
@@ -88,6 +112,9 @@
 - **WebSocket Events**: 100+ events per minute with <500ms latency
 - **ETP Query Flow**: Query/QueryResponse events with realistic 2-10s timing
 - **Enhanced Metrics**: Successful bids, total energy bought, detailed performance
+- **Realistic Timing**: 5-10 second delays between bids for better observation
+- **Critical Recharge**: Emergency 5%/second recharge when energy drops below 10%
+- **Smart Rejections**: Intelligent bid evaluation with capacity and safety constraints
 
 ### Economic Impact Demonstration
 

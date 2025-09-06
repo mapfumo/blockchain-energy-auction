@@ -39,6 +39,15 @@ pub enum SystemEvent {
         final_price: f64,
         energy_amount: f64,
     },
+    AuctionCompleted {
+        auction_id: u64,
+        winner_aggregator_id: u64,
+        seller_bess_id: u64,
+        energy_sold: f64,
+        final_price: f64,
+        total_value: f64,
+        auction_duration_ms: u64,
+    },
     BidRejected {
         aggregator_id: u64,
         bess_id: u64,

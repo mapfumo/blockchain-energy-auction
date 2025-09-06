@@ -45,7 +45,7 @@ export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
       )}
       {connection.isConnected && (
         <div className="text-xs text-gray-500 dark:text-gray-400">
-          {connection.messageCount} messages
+          Connected
         </div>
       )}
     </div>

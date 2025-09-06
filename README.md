@@ -6,6 +6,23 @@ A production-ready Rust/Solana implementation of a real-time energy auction plat
 
 Demonstrate that competitive bidding among multiple energy aggregators for D-BESS energy results in **fairer prices for BESS owners** compared to a single-utility model.
 
+## ✨ Latest Features
+
+- **Enhanced Simulation Timing**: Realistic 5-10 second delays between aggregator bids
+- **Critical Energy Management**: Emergency 5%/second recharge when BESS energy drops below 10%
+- **Sequential Bidding**: Aggregators wait between actions for more realistic simulation pace
+- **Smart Rejection Logic**: Intelligent bid evaluation with capacity and safety constraints
+- **Real-time Energy Events**: Live monitoring of energy depletion and recharge cycles
+- **High Contrast UI**: Colorful auction details (blue/green/purple/orange) for excellent readability
+
+## 📚 Documentation
+
+Detailed technical documentation is available in the [`docs/`](./docs/) folder:
+
+- **[Rejection Logic](./docs/REJECTION_LOGIC.md)** - Intelligent bid evaluation system
+- **[Simulation Timing](./docs/SIMULATION_TIMING.md)** - Enhanced timing and delay systems
+- **[Documentation Index](./docs/README.md)** - Complete documentation overview
+
 ## 🏗️ Architecture
 
 ### Core Components
@@ -51,7 +68,12 @@ Demonstrate that competitive bidding among multiple energy aggregators for D-BES
 - [x] All 10 message types (Register, Query, Response, Bid, Accept, Confirm, Reject, Terminate, DeviceFailure, BESSStatus)
 - [x] Timing constraints validation (≤500ms critical messages, ≤200ms device failures)
 - [x] **Real Query Flow**: Query/QueryResponse events following research paper specification
+- [x] **Energy Management**: BESS energy depletion and recharge simulation with smart pricing
+- [x] **Enhanced Recharge**: Critical 5%/second recharge when energy drops below 10%
 - [x] **Realistic Timing**: Random 2-10 second delays between auctions (no constant querying)
+- [x] **Bid Delays**: Random 5-10 second delays between aggregator bids for realistic simulation
+- [x] **Smart Rejections**: Intelligent bid evaluation with capacity and safety constraints
+- [x] **Energy Events**: EnergyDepleted and EnergyRecharged events for real-time monitoring
 - [x] Message priority handling and TTL management
 - [x] Comprehensive test coverage (13 tests)
 
@@ -63,6 +85,7 @@ Demonstrate that competitive bidding among multiple energy aggregators for D-BES
 - [x] Message generation (status, query response)
 - [x] BESSNodeManager for concurrent node management
 - [x] **BESSTCPServer**: Production-ready TCP server with concurrent connection handling
+- [x] **Smart Rejection Logic**: Hierarchical bid evaluation system (see `docs/REJECTION_LOGIC.md`)
 - [x] Comprehensive test coverage (28 tests total)
 
 **Aggregator Node Implementation**

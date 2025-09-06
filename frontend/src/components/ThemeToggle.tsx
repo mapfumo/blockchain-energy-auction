@@ -9,6 +9,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ className = "" }) => {
   const { theme, toggleTheme, resolvedTheme } = useTheme();
 
   const getIcon = () => {
+    // Show icon based on the actual theme setting, not resolved theme
     if (theme === "system") {
       return (
         <svg
@@ -28,7 +29,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ className = "" }) => {
       );
     }
 
-    if (resolvedTheme === "dark") {
+    if (theme === "dark") {
       return (
         <svg
           className="w-5 h-5"
@@ -47,6 +48,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ className = "" }) => {
       );
     }
 
+    // theme === "light"
     return (
       <svg
         className="w-5 h-5"

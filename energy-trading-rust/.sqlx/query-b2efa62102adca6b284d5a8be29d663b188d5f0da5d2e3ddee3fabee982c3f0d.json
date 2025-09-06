@@ -1,0 +1,68 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT * FROM aggregators WHERE status = 'online' ORDER BY created_at DESC",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "device_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "owner_pubkey",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "max_bid_price",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 4,
+        "name": "energy_requirements",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 5,
+        "name": "reputation_score",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 6,
+        "name": "status",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 7,
+        "name": "last_seen",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 8,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "b2efa62102adca6b284d5a8be29d663b188d5f0da5d2e3ddee3fabee982c3f0d"
+}

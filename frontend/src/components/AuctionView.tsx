@@ -98,30 +98,106 @@ export const AuctionView: React.FC<AuctionViewProps> = ({
                     </div>
                     <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                       <div>
-                        <span className="text-gray-500">Start Time:</span>
-                        <div className="font-medium">
+                        <span className="text-gray-600 dark:text-gray-400 font-medium">
+                          Start Time:
+                        </span>
+                        <div className="font-semibold text-blue-600 dark:text-blue-400">
                           {formatTime(auction.start_time)}
                         </div>
                       </div>
                       <div>
-                        <span className="text-gray-500">Total Energy:</span>
-                        <div className="font-medium">
+                        <span className="text-gray-600 dark:text-gray-400 font-medium">
+                          Total Energy:
+                        </span>
+                        <div className="font-semibold text-green-600 dark:text-green-400">
                           {formatEnergy(auction.total_energy)}
                         </div>
                       </div>
                       <div>
-                        <span className="text-gray-500">Reserve Price:</span>
-                        <div className="font-medium">
+                        <span className="text-gray-600 dark:text-gray-400 font-medium">
+                          Reserve Price:
+                        </span>
+                        <div className="font-semibold text-purple-600 dark:text-purple-400">
                           {formatPrice(auction.reserve_price)}
                         </div>
                       </div>
                       <div>
-                        <span className="text-gray-500">Total Bids:</span>
-                        <div className="font-medium">{auction.total_bids}</div>
+                        <span className="text-gray-600 dark:text-gray-400 font-medium">
+                          Total Bids:
+                        </span>
+                        <div className="font-semibold text-orange-600 dark:text-orange-400">
+                          {auction.total_bids}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
+
+                {/* Winner Details (for completed auctions) */}
+                {auction.status === "completed" &&
+                  auction.winner_aggregator_id && (
+                    <div className="mt-4 p-4 bg-blue-50 dark:bg-gray-800 rounded-lg border border-blue-200 dark:border-gray-600">
+                      <div className="flex items-center space-x-2 mb-3">
+                        <span className="text-lg">🏆</span>
+                        <h4 className="text-lg font-semibold text-blue-900 dark:text-white">
+                          Auction Winner
+                        </h4>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="text-blue-700 dark:text-gray-300 font-medium">
+                            Winner:
+                          </span>
+                          <div className="font-semibold text-blue-900 dark:text-white">
+                            Aggregator {auction.winner_aggregator_id}
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-blue-700 dark:text-gray-300 font-medium">
+                            Seller:
+                          </span>
+                          <div className="font-semibold text-blue-900 dark:text-white">
+                            BESS Node {auction.seller_bess_id}
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-blue-700 dark:text-gray-300 font-medium">
+                            Energy Sold:
+                          </span>
+                          <div className="font-semibold text-blue-900 dark:text-white">
+                            {auction.energy_sold?.toFixed(1)} kWh
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-blue-700 dark:text-gray-300 font-medium">
+                            Final Price:
+                          </span>
+                          <div className="font-semibold text-blue-900 dark:text-white">
+                            {auction.final_price?.toFixed(1)}¢/kWh
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-blue-700 dark:text-gray-300 font-medium">
+                            Total Value:
+                          </span>
+                          <div className="font-semibold text-blue-900 dark:text-white">
+                            ${((auction.total_value || 0) / 100).toFixed(2)}
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-blue-700 dark:text-gray-300 font-medium">
+                            Duration:
+                          </span>
+                          <div className="font-semibold text-blue-900 dark:text-white">
+                            {(
+                              (auction.auction_duration_ms || 0) / 1000
+                            ).toFixed(1)}
+                            s
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                 {/* Bidding Range */}
                 <div className="mt-4">

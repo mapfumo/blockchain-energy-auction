@@ -25,6 +25,7 @@ type EventFilter =
   | "BidPlaced"
   | "BidAccepted"
   | "BidRejected"
+  | "AuctionCompleted"
   | "QuerySent"
   | "QueryResponse"
   | "EnergyDepleted"
@@ -136,7 +137,9 @@ export const LiveEventsPanel: React.FC<LiveEventsPanelProps> = ({
           bgColor: "bg-red-50 dark:bg-red-900/20",
           title: "Energy Depleted",
           description: `BESS Node ${data.bess_id}`,
-          details: `Energy depleted! ${data.final_energy.toFixed(1)} kWh remaining (${data.energy_percentage.toFixed(1)}%)`,
+          details: `Energy depleted! ${data.final_energy.toFixed(
+            1
+          )} kWh remaining (${data.energy_percentage.toFixed(1)}%)`,
         };
       }
       case "EnergyRecharged": {
@@ -147,7 +150,9 @@ export const LiveEventsPanel: React.FC<LiveEventsPanelProps> = ({
           bgColor: "bg-green-50 dark:bg-green-900/20",
           title: "Energy Recharged",
           description: `BESS Node ${data.bess_id}`,
-          details: `Recharged to ${data.new_total.toFixed(1)} kWh (${data.energy_percentage.toFixed(1)}%)`,
+          details: `Recharged to ${data.new_total.toFixed(
+            1
+          )} kWh (${data.energy_percentage.toFixed(1)}%)`,
         };
       }
       case "SystemMetrics": {

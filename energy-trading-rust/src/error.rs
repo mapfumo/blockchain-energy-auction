@@ -39,6 +39,9 @@ pub enum ETPError {
     #[error("BESS node error: {0}")]
     BESSNode(String),
     
+    #[error("Insufficient energy available")]
+    InsufficientEnergy,
+    
     #[error("JSON serialization error: {0}")]
     JsonSerialization(#[from] serde_json::Error),
 }

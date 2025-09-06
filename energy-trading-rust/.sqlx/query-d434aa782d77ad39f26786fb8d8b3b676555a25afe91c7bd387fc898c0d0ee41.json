@@ -1,0 +1,64 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT * FROM bids WHERE auction_id = $1 ORDER BY bid_price DESC, created_at ASC",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "auction_id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 2,
+        "name": "aggregator_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "bid_price",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 4,
+        "name": "energy_amount",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 5,
+        "name": "status",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 7,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "d434aa782d77ad39f26786fb8d8b3b676555a25afe91c7bd387fc898c0d0ee41"
+}

@@ -93,186 +93,216 @@ export const Dashboard: React.FC = () => {
   };
 
   const handleSystemEvent = (event: any) => {
-    console.log("🎯 Dashboard received event:", event);
-    console.log("🎯 Event type:", typeof event);
-    console.log("🎯 Event keys:", Object.keys(event || {}));
-    setMessageCount((prev) => prev + 1);
+    try {
+      setMessageCount((prev) => prev + 1);
 
-    // Add event to live events list
-    const systemEvent: SystemEvent = {
-      type: Object.keys(event)[0] as any,
-      data: event[Object.keys(event)[0]],
-      timestamp: new Date().toISOString(),
-    };
-    setLiveEvents((prev) => [systemEvent, ...prev.slice(0, 99)]); // Keep last 100 events
-
-    // Handle the actual WebSocket message format from Rust backend
-    if (event.AuctionStarted) {
-      const auctionData: AuctionData = {
-        id: event.AuctionStarted.auction_id,
-        start_time: new Date().toISOString(),
-        total_energy: event.AuctionStarted.total_energy,
-        reserve_price: event.AuctionStarted.reserve_price,
-        current_highest_bid: event.AuctionStarted.reserve_price,
-        current_lowest_bid: event.AuctionStarted.reserve_price,
-        total_bids: 0,
-        status: "active",
-        bess_nodes: bessNodes,
-        aggregators: aggregators,
+      // Add event to live events list
+      const systemEvent: SystemEvent = {
+        type: Object.keys(event)[0] as any,
+        data: event[Object.keys(event)[0]],
+        timestamp: new Date().toISOString(),
       };
-      setAuctions((prev) => [auctionData, ...prev.slice(0, 9)]); // Keep last 10 auctions
-    } else if (event.BidPlaced) {
-      console.log("🎯 Processing BidPlaced event:", event.BidPlaced);
-      console.log("🎯 Current auctions before update:", auctions);
-      setAuctions((prev) => {
-        const updated = prev.map((auction) => {
-          if (auction.id === event.BidPlaced.auction_id) {
-            console.log(
-              "🎯 Updating auction",
-              auction.id,
-              "total_bids from",
-              auction.total_bids,
-              "to",
-              auction.total_bids + 1
-            );
-            return {
-              ...auction,
-              current_highest_bid: Math.max(
-                auction.current_highest_bid,
-                event.BidPlaced.bid_price
-              ),
-              current_lowest_bid: Math.min(
-                auction.current_lowest_bid,
-                event.BidPlaced.bid_price
-              ),
-              total_bids: auction.total_bids + 1,
-            };
-          }
-          return auction;
-        });
-        console.log("🎯 Updated auctions:", updated);
-        return updated;
-      });
+      setLiveEvents((prev) => [systemEvent, ...prev.slice(0, 99)]); // Keep last 100 events
 
-      // Add to price history
-      setPriceHistory((prev) => [
-        {
-          timestamp: new Date().toISOString(),
-          price: event.BidPlaced.bid_price,
-          energy_amount: event.BidPlaced.energy_amount,
-        },
-        ...prev.slice(0, 99), // Keep last 100 price points
-      ]);
-    } else if (event.BidAccepted) {
-      setAuctions((prev) =>
-        prev.map((auction) => {
-          if (auction.id === event.BidAccepted.auction_id) {
-            return {
-              ...auction,
-              status: "completed" as const,
+      // Handle the actual WebSocket message format from Rust backend
+      if (event.AuctionStarted) {
+        const auctionData: AuctionData = {
+          id: event.AuctionStarted.auction_id,
+          start_time: new Date().toISOString(),
+          total_energy: event.AuctionStarted.total_energy,
+          reserve_price: event.AuctionStarted.reserve_price,
+          current_highest_bid: event.AuctionStarted.reserve_price,
+          current_lowest_bid: event.AuctionStarted.reserve_price,
+          total_bids: 0,
+          status: "active",
+          bess_nodes: bessNodes,
+          aggregators: aggregators,
+        };
+        setAuctions((prev) => [auctionData, ...prev.slice(0, 9)]); // Keep last 10 auctions
+      } else if (
+        event.auction_id &&
+        event.total_energy &&
+        event.reserve_price
+      ) {
+        // Handle flat event structure from backend
+        const auctionData: AuctionData = {
+          id: event.auction_id,
+          start_time: new Date().toISOString(),
+          total_energy: event.total_energy,
+          reserve_price: event.reserve_price,
+          current_highest_bid: event.reserve_price,
+          current_lowest_bid: event.reserve_price,
+          total_bids: 0,
+          status: "active",
+          bess_nodes: bessNodes,
+          aggregators: aggregators,
+        };
+        setAuctions((prev) => [auctionData, ...prev.slice(0, 9)]); // Keep last 10 auctions
+      } else if (
+        event.BidPlaced ||
+        (event.auction_id && event.aggregator_id && event.bid_price)
+      ) {
+        const bidData = event.BidPlaced || event;
+        setAuctions((prev) => {
+          const updated = prev.map((auction) => {
+            if (auction.id === bidData.auction_id) {
+              return {
+                ...auction,
+                current_highest_bid: Math.max(
+                  auction.current_highest_bid,
+                  bidData.bid_price
+                ),
+                current_lowest_bid: Math.min(
+                  auction.current_lowest_bid,
+                  bidData.bid_price
+                ),
+                total_bids: auction.total_bids + 1,
+              };
+            }
+            return auction;
+          });
+          return updated;
+        });
+
+        // Add to price history
+        setPriceHistory((prev) => [
+          {
+            timestamp: new Date().toISOString(),
+            price: bidData.bid_price,
+            energy_amount: bidData.energy_amount,
+          },
+          ...prev.slice(0, 99), // Keep last 100 price points
+        ]);
+      } else if (
+        event.BidAccepted ||
+        (event.auction_id && event.final_price && event.energy_amount)
+      ) {
+        const acceptData = event.BidAccepted || event;
+        setAuctions((prev) =>
+          prev.map((auction) => {
+            if (auction.id === acceptData.auction_id) {
+              return {
+                ...auction,
+                status: "completed" as const,
+              };
+            }
+            return auction;
+          })
+        );
+      } else if (event.AuctionCompleted) {
+        // Handle detailed auction completion with winner information
+        const completedData = event.AuctionCompleted;
+        console.log("🏆 Auction Completed:", {
+          auction_id: completedData.auction_id,
+          winner: `Aggregator ${completedData.winner_aggregator_id}`,
+          seller: `BESS ${completedData.seller_bess_id}`,
+          energy: `${completedData.energy_sold} kWh`,
+          price: `${completedData.final_price}¢/kWh`,
+          total: `$${(completedData.total_value / 100).toFixed(2)}`,
+          duration: `${(completedData.auction_duration_ms / 1000).toFixed(1)}s`,
+        });
+
+        // Update auction with winner details
+        setAuctions((prev) =>
+          prev.map((auction) => {
+            if (auction.id === completedData.auction_id) {
+              return {
+                ...auction,
+                status: "completed" as const,
+                winner_aggregator_id: completedData.winner_aggregator_id,
+                seller_bess_id: completedData.seller_bess_id,
+                energy_sold: completedData.energy_sold,
+                final_price: completedData.final_price,
+                total_value: completedData.total_value,
+                auction_duration_ms: completedData.auction_duration_ms,
+              };
+            }
+            return auction;
+          })
+        );
+      } else if (event.SystemMetrics) {
+        setSystemMetrics(event.SystemMetrics);
+      } else if (event.BESSNodeStatus) {
+        setBessNodes((prev) => {
+          const existingIndex = prev.findIndex(
+            (node) => node.device_id === event.BESSNodeStatus.device_id
+          );
+          if (existingIndex >= 0) {
+            const updated = [...prev];
+            updated[existingIndex] = {
+              ...updated[existingIndex],
+              current_energy_level: event.BESSNodeStatus.energy_available,
+              battery_health: event.BESSNodeStatus.battery_health,
+              is_online: event.BESSNodeStatus.is_online,
+              last_updated: new Date().toISOString(),
             };
+            return updated;
+          } else {
+            const newBessNode: BESSNode = {
+              device_id: event.BESSNodeStatus.device_id,
+              name: `BESS-${event.BESSNodeStatus.device_id}`,
+              capacity: 15.0, // 15kWh max capacity (realistic Australian home battery)
+              current_energy_level: event.BESSNodeStatus.energy_available,
+              reserve_price: 5.0 + Math.random() * 25.0, // 5-30 c/kWh (competitive pricing range)
+              percentage_for_sale: 50.0 + (event.BESSNodeStatus.device_id % 30), // 50-80% available for sale
+              battery_voltage: [12.0, 24.0, 48.0][
+                event.BESSNodeStatus.device_id % 3
+              ], // 12V, 24V, 48V (Australian residential standards)
+              max_discharge_rate:
+                5.0 + (event.BESSNodeStatus.device_id % 3) * 1.0, // 5-7kW discharge rate
+              battery_health: event.BESSNodeStatus.battery_health,
+              is_online: event.BESSNodeStatus.is_online,
+              last_updated: new Date().toISOString(),
+            };
+            return [...prev, newBessNode];
           }
-          return auction;
-        })
-      );
-    } else if (event.SystemMetrics) {
-      setSystemMetrics(event.SystemMetrics);
-    } else if (event.BESSNodeStatus) {
-      setBessNodes((prev) => {
-        const existingIndex = prev.findIndex(
-          (node) => node.device_id === event.BESSNodeStatus.device_id
-        );
-        if (existingIndex >= 0) {
-          const updated = [...prev];
-          updated[existingIndex] = {
-            ...updated[existingIndex],
-            current_energy_level: event.BESSNodeStatus.energy_available,
-            battery_health: event.BESSNodeStatus.battery_health,
-            is_online: event.BESSNodeStatus.is_online,
-            last_updated: new Date().toISOString(),
-          };
-          return updated;
-        } else {
-          const newBessNode: BESSNode = {
-            device_id: event.BESSNodeStatus.device_id,
-            name: `BESS-${event.BESSNodeStatus.device_id}`,
-            capacity: 15.0, // 15kWh max capacity (realistic Australian home battery)
-            current_energy_level: event.BESSNodeStatus.energy_available,
-            reserve_price: 5.0 + Math.random() * 25.0, // 5-30 c/kWh (competitive pricing range)
-            percentage_for_sale: 50.0 + (event.BESSNodeStatus.device_id % 30), // 50-80% available for sale
-            battery_voltage: [12.0, 24.0, 48.0][
-              event.BESSNodeStatus.device_id % 3
-            ], // 12V, 24V, 48V (Australian residential standards)
-            max_discharge_rate:
-              5.0 + (event.BESSNodeStatus.device_id % 3) * 1.0, // 5-7kW discharge rate
-            battery_health: event.BESSNodeStatus.battery_health,
-            is_online: event.BESSNodeStatus.is_online,
-            last_updated: new Date().toISOString(),
-          };
-          return [...prev, newBessNode];
-        }
-      });
-    } else if (event.AggregatorStatus) {
-      setAggregators((prev) => {
-        const existingIndex = prev.findIndex(
-          (agg) => agg.device_id === event.AggregatorStatus.device_id
-        );
-        if (existingIndex >= 0) {
-          const updated = [...prev];
-          updated[existingIndex] = {
-            ...updated[existingIndex],
-            is_online: event.AggregatorStatus.is_online,
-            success_rate: event.AggregatorStatus.success_rate,
-            total_bids: event.AggregatorStatus.total_bids,
-            successful_bids: event.AggregatorStatus.successful_bids,
-            total_energy_bought: event.AggregatorStatus.total_energy_bought,
-            average_bid_price: event.AggregatorStatus.average_bid_price || 0,
-            last_updated: new Date().toISOString(),
-          };
-          return updated;
-        } else {
-          const newAggregator: AggregatorNode = {
-            device_id: event.AggregatorStatus.device_id,
-            name: `Aggregator-${event.AggregatorStatus.device_id}`,
-            strategy: event.AggregatorStatus.strategy,
-            is_online: event.AggregatorStatus.is_online,
-            success_rate: event.AggregatorStatus.success_rate,
-            total_bids: event.AggregatorStatus.total_bids,
-            successful_bids: event.AggregatorStatus.successful_bids,
-            total_energy_bought: event.AggregatorStatus.total_energy_bought,
-            average_bid_price: event.AggregatorStatus.average_bid_price || 0,
-            last_updated: new Date().toISOString(),
-          };
-          return [...prev, newAggregator];
-        }
-      });
+        });
+      } else if (event.AggregatorStatus) {
+        setAggregators((prev) => {
+          const existingIndex = prev.findIndex(
+            (agg) => agg.device_id === event.AggregatorStatus.device_id
+          );
+          if (existingIndex >= 0) {
+            const updated = [...prev];
+            updated[existingIndex] = {
+              ...updated[existingIndex],
+              is_online: event.AggregatorStatus.is_online,
+              success_rate: event.AggregatorStatus.success_rate,
+              total_bids: event.AggregatorStatus.total_bids,
+              successful_bids: event.AggregatorStatus.successful_bids,
+              total_energy_bought: event.AggregatorStatus.total_energy_bought,
+              average_bid_price: event.AggregatorStatus.average_bid_price || 0,
+              last_updated: new Date().toISOString(),
+            };
+            return updated;
+          } else {
+            const newAggregator: AggregatorNode = {
+              device_id: event.AggregatorStatus.device_id,
+              name: `Aggregator-${event.AggregatorStatus.device_id}`,
+              strategy: event.AggregatorStatus.strategy,
+              is_online: event.AggregatorStatus.is_online,
+              success_rate: event.AggregatorStatus.success_rate,
+              total_bids: event.AggregatorStatus.total_bids,
+              successful_bids: event.AggregatorStatus.successful_bids,
+              total_energy_bought: event.AggregatorStatus.total_energy_bought,
+              average_bid_price: event.AggregatorStatus.average_bid_price || 0,
+              last_updated: new Date().toISOString(),
+            };
+            return [...prev, newAggregator];
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Error processing system event:", error, event);
     }
   };
 
   // Calculate summary statistics
   const totalAuctions = auctions.length;
   const activeAuctions = auctions.filter((a) => a.status === "active").length;
-  const totalBids = auctions.reduce((sum, a) => {
-    console.log(
-      "🎯 Calculating totalBids - auction",
-      a.id,
-      "has",
-      a.total_bids,
-      "bids"
-    );
-    return sum + a.total_bids;
-  }, 0);
+  const totalBids = auctions.reduce((sum, a) => sum + a.total_bids, 0);
   const totalBessNodes = bessNodes.length;
   const totalAggregators = aggregators.length;
-
-  console.log(
-    "🎯 Summary stats - totalAuctions:",
-    totalAuctions,
-    "totalBids:",
-    totalBids,
-    "auctions:",
-    auctions
-  );
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">

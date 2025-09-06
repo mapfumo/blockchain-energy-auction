@@ -1,0 +1,88 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT * FROM batteries WHERE device_id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "device_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "owner_pubkey",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "energy_total",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 4,
+        "name": "percentage_for_sale",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 5,
+        "name": "reserve_price",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 6,
+        "name": "health_status",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 7,
+        "name": "voltage",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 8,
+        "name": "discharge_rate",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 9,
+        "name": "status",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 10,
+        "name": "last_seen",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 11,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "0579156b64993b5a158b8a25929dedfd0b0133271a3a4e2c5d86e4c0685b340d"
+}

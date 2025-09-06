@@ -1,0 +1,97 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO batteries (device_id, owner_pubkey, energy_total, percentage_for_sale, \n                                 reserve_price, health_status, voltage, discharge_rate, status, last_seen)\n            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)\n            RETURNING *\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "device_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "owner_pubkey",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "energy_total",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 4,
+        "name": "percentage_for_sale",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 5,
+        "name": "reserve_price",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 6,
+        "name": "health_status",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 7,
+        "name": "voltage",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 8,
+        "name": "discharge_rate",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 9,
+        "name": "status",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 10,
+        "name": "last_seen",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 11,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Varchar",
+        "Numeric",
+        "Numeric",
+        "Numeric",
+        "Int4",
+        "Numeric",
+        "Numeric",
+        "Varchar",
+        "Timestamptz"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "4f147e2e7c26ba8f8936fa44e200c3a578aaa85e3f8fb078960e366b087cfad3"
+}

@@ -57,6 +57,7 @@ export interface SystemEvent {
     | "BidPlaced"
     | "BidAccepted"
     | "BidRejected"
+    | "AuctionCompleted"
     | "QuerySent"
     | "QueryResponse"
     | "EnergyDepleted"
@@ -105,6 +106,16 @@ export interface BidRejectedEvent {
   aggregator_id: number;
   bess_id: number;
   reason: string;
+}
+
+export interface AuctionCompletedEvent {
+  auction_id: number;
+  winner_aggregator_id: number;
+  seller_bess_id: number;
+  energy_sold: number; // Energy in kWh
+  final_price: number; // Price in cents/kWh
+  total_value: number; // Total value in cents
+  auction_duration_ms: number; // Duration in milliseconds
 }
 
 export interface QuerySentEvent {
@@ -179,6 +190,13 @@ export interface AuctionData {
   status: "active" | "completed" | "cancelled";
   bess_nodes: BESSNode[];
   aggregators: AggregatorNode[];
+  // Winner details (only available for completed auctions)
+  winner_aggregator_id?: number;
+  seller_bess_id?: number;
+  energy_sold?: number; // Energy in kWh
+  final_price?: number; // Price in cents/kWh
+  total_value?: number; // Total value in cents
+  auction_duration_ms?: number; // Duration in milliseconds
 }
 
 export interface PriceHistory {

@@ -135,13 +135,13 @@ export const BESSNodeMap: React.FC<BESSNodeMapProps> = ({
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-500">Reserve Price:</span>
-                      <span className="font-medium">
+                      <span className="font-medium text-blue-600 dark:text-blue-400">
                         {formatPrice(node.reserve_price)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">For Sale:</span>
-                      <span className="font-medium">
+                      <span className="font-medium text-green-600 dark:text-green-400">
                         {node.percentage_for_sale}%
                       </span>
                     </div>
@@ -155,13 +155,13 @@ export const BESSNodeMap: React.FC<BESSNodeMapProps> = ({
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Discharge Rate:</span>
-                      <span className="font-medium">
+                      <span className="font-medium text-orange-600 dark:text-orange-400">
                         {formatEnergy(node.max_discharge_rate)}/h
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Last Updated:</span>
-                      <span className="font-medium">
+                      <span className="font-medium text-purple-600 dark:text-purple-400">
                         {formatTime(node.last_updated)}
                       </span>
                     </div>
@@ -226,25 +226,25 @@ export const BESSNodeMap: React.FC<BESSNodeMapProps> = ({
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-500">Success Rate:</span>
-                      <span className="font-medium">
+                      <span className="font-medium text-green-600 dark:text-green-400">
                         {(aggregator.success_rate * 100).toFixed(1)}%
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Total Bids:</span>
-                      <span className="font-medium">
+                      <span className="font-medium text-blue-600 dark:text-blue-400">
                         {aggregator.total_bids}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Avg Bid Price:</span>
-                      <span className="font-medium">
+                      <span className="font-medium text-purple-600 dark:text-purple-400">
                         {formatPrice(aggregator.average_bid_price)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Last Updated:</span>
-                      <span className="font-medium">
+                      <span className="font-medium text-orange-600 dark:text-orange-400">
                         {formatTime(aggregator.last_updated)}
                       </span>
                     </div>
