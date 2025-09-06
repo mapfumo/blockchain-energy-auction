@@ -29,13 +29,24 @@ export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
   };
 
   return (
-    <div className="ml-4 flex items-center">
-      <span className="mr-2">{getStatusIcon()}</span>
-      <span className={`text-sm font-medium ${getStatusColor()}`}>
-        {getStatusText()}
-      </span>
+    <div className="flex items-center space-x-2">
+      <div className="flex items-center">
+        <span className="mr-2">{getStatusIcon()}</span>
+        <span className={`text-sm font-medium ${getStatusColor()}`}>
+          {getStatusText()}
+        </span>
+      </div>
       {connection.error && (
-        <span className="ml-2 text-xs text-red-500">{connection.error}</span>
+        <div className="flex items-center">
+          <span className="text-xs text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded">
+            {connection.error}
+          </span>
+        </div>
+      )}
+      {connection.isConnected && (
+        <div className="text-xs text-gray-500 dark:text-gray-400">
+          {connection.messageCount} messages
+        </div>
       )}
     </div>
   );

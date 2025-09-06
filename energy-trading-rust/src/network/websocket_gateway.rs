@@ -26,12 +26,14 @@ pub enum SystemEvent {
         reserve_price: f64,
     },
     BidPlaced {
+        auction_id: u64,
         aggregator_id: u64,
         bess_id: u64,
         bid_price: f64,
         energy_amount: f64,
     },
     BidAccepted {
+        auction_id: u64,
         aggregator_id: u64,
         bess_id: u64,
         final_price: f64,
@@ -41,6 +43,15 @@ pub enum SystemEvent {
         aggregator_id: u64,
         bess_id: u64,
         reason: String,
+    },
+    QuerySent {
+        aggregator_id: u64,
+        bess_id: u64,
+    },
+    QueryResponse {
+        bess_id: u64,
+        energy_available: f64,
+        percentage_for_sale: f64,
     },
     SystemMetrics {
         total_auctions: u64,
@@ -60,6 +71,10 @@ pub enum SystemEvent {
         strategy: String,
         success_rate: f64,
         total_bids: u64,
+        successful_bids: u64,
+        total_energy_bought: f64,
+        average_bid_price: f64,
+        is_online: bool,
     },
 }
 

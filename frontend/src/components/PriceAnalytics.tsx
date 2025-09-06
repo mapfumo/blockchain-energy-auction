@@ -28,7 +28,7 @@ export const PriceAnalytics: React.FC<PriceAnalyticsProps> = ({
   priceHistory,
   auctions,
 }) => {
-  const formatPrice = (price: number) => `$${price.toFixed(2)}`;
+  const formatPrice = (price: number) => `${price.toFixed(1)}¢/kWh`;
   const formatEnergy = (energy: number) => `${energy.toFixed(1)} kWh`;
 
   // Process price history for charts
@@ -89,13 +89,13 @@ export const PriceAnalytics: React.FC<PriceAnalyticsProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="text-2xl font-bold text-gray-900">
-            {priceStats ? formatPrice(priceStats.avgPrice) : "$0.00"}
+            {priceStats ? formatPrice(priceStats.avgPrice) : "0.0¢/kWh"}
           </div>
           <div className="text-sm text-gray-500">Average Bid Price</div>
         </div>
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="text-2xl font-bold text-green-600">
-            {priceStats ? formatPrice(priceStats.priceRange) : "$0.00"}
+            {priceStats ? formatPrice(priceStats.priceRange) : "0.0¢/kWh"}
           </div>
           <div className="text-sm text-gray-500">Price Range</div>
         </div>

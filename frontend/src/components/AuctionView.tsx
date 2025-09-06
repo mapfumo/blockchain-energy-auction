@@ -12,7 +12,7 @@ export const AuctionView: React.FC<AuctionViewProps> = ({
   bessNodes,
   aggregators,
 }) => {
-  const formatPrice = (price: number) => `$${price.toFixed(2)}`;
+  const formatPrice = (price: number) => `${price.toFixed(1)}¢/kWh`;
   const formatEnergy = (energy: number) => `${energy.toFixed(1)} kWh`;
   const formatTime = (timestamp: string) =>
     new Date(timestamp).toLocaleTimeString();

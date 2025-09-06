@@ -8,10 +8,10 @@ export interface ETPMessage {
   source_address: string;
   destination_address: string;
   multicast_address: string;
-  bid_price: number;
-  required_energy_amount: number;
-  total_energy_available: number;
-  percentage_for_sale: number;
+  bid_price: number; // Price in cents/kWh
+  required_energy_amount: number; // Energy in kWh
+  total_energy_available: number; // Energy in kWh
+  percentage_for_sale: number; // Percentage (0-100)
   battery_voltage: number;
   timeout: number;
   ttl: number;
@@ -23,10 +23,11 @@ export interface BESSNode {
   name: string;
   capacity: number;
   current_energy_level: number;
-  reserve_price: number;
-  percentage_for_sale: number;
+  reserve_price: number; // Price in cents/kWh
+  percentage_for_sale: number; // Percentage (0-100)
   battery_voltage: number;
   max_discharge_rate: number;
+  battery_health: number; // 0=Excellent, 1=Good, 2=Fair, 3=Poor
   is_online: boolean;
   last_updated: string;
 }
@@ -38,7 +39,9 @@ export interface AggregatorNode {
   is_online: boolean;
   success_rate: number;
   total_bids: number;
-  average_bid_price: number;
+  successful_bids: number;
+  total_energy_bought: number; // Total energy bought in kWh
+  average_bid_price: number; // Price in cents/kWh
   last_updated: string;
 }
 
@@ -54,6 +57,8 @@ export interface SystemEvent {
     | "BidPlaced"
     | "BidAccepted"
     | "BidRejected"
+    | "QuerySent"
+    | "QueryResponse"
     | "SystemMetrics"
     | "BESSNodeStatus"
     | "AggregatorStatus";
@@ -62,6 +67,8 @@ export interface SystemEvent {
     | BidPlacedEvent
     | BidAcceptedEvent
     | BidRejectedEvent
+    | QuerySentEvent
+    | QueryResponseEvent
     | SystemMetricsEvent
     | BESSNodeStatusEvent
     | AggregatorStatusEvent;
@@ -70,30 +77,41 @@ export interface SystemEvent {
 
 export interface AuctionStartedEvent {
   auction_id: number;
-  total_energy: number;
-  reserve_price: number;
+  total_energy: number; // Energy in kWh
+  reserve_price: number; // Price in cents/kWh
 }
 
 export interface BidPlacedEvent {
   auction_id: number;
   aggregator_id: number;
   bess_id: number;
-  bid_price: number;
-  energy_amount: number;
+  bid_price: number; // Price in cents/kWh
+  energy_amount: number; // Energy in kWh
 }
 
 export interface BidAcceptedEvent {
   auction_id: number;
   aggregator_id: number;
   bess_id: number;
-  final_price: number;
-  energy_amount: number;
+  final_price: number; // Price in cents/kWh
+  energy_amount: number; // Energy in kWh
 }
 
 export interface BidRejectedEvent {
   aggregator_id: number;
   bess_id: number;
   reason: string;
+}
+
+export interface QuerySentEvent {
+  aggregator_id: number;
+  bess_id: number;
+}
+
+export interface QueryResponseEvent {
+  bess_id: number;
+  energy_available: number; // Energy in kWh
+  percentage_for_sale: number; // Percentage (0-100)
 }
 
 export interface SystemMetricsEvent {
@@ -116,6 +134,10 @@ export interface AggregatorStatusEvent {
   strategy: string;
   success_rate: number;
   total_bids: number;
+  successful_bids: number;
+  total_energy_bought: number; // Total energy bought in kWh
+  average_bid_price: number; // Price in cents/kWh
+  is_online: boolean; // Online status
 }
 
 export interface SystemMetrics {
@@ -132,10 +154,10 @@ export interface SystemMetrics {
 export interface AuctionData {
   id: number;
   start_time: string;
-  total_energy: number;
-  reserve_price: number;
-  current_highest_bid: number;
-  current_lowest_bid: number;
+  total_energy: number; // Energy in kWh
+  reserve_price: number; // Price in cents/kWh
+  current_highest_bid: number; // Price in cents/kWh
+  current_lowest_bid: number; // Price in cents/kWh
   total_bids: number;
   status: "active" | "completed" | "cancelled";
   bess_nodes: BESSNode[];
@@ -144,8 +166,8 @@ export interface AuctionData {
 
 export interface PriceHistory {
   timestamp: string;
-  price: number;
-  energy_amount: number;
+  price: number; // Price in cents/kWh
+  energy_amount: number; // Energy in kWh
   aggregator_id: number;
   bess_id: number;
 }

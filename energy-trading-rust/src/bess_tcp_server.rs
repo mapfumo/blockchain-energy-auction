@@ -159,7 +159,7 @@ impl BESSTCPServer {
                 None // BESS doesn't send query responses
             }
             3 => { // Bid
-                info!("Processing bid message from device {}: ${:.2} for {:.2} kWh", 
+                info!("Processing bid message from device {}: {:.2}¢/kWh for {:.2} kWh", 
                       message.device_id, message.bid_price, message.required_energy_amount);
                 
                 let bess = bess_node.read().await;

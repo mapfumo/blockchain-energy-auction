@@ -10,7 +10,7 @@ export const BESSNodeMap: React.FC<BESSNodeMapProps> = ({
   bessNodes,
   aggregators,
 }) => {
-  const formatPrice = (price: number) => `$${price.toFixed(2)}`;
+  const formatPrice = (price: number) => `${price.toFixed(1)}¢/kWh`;
   const formatEnergy = (energy: number) => `${energy.toFixed(1)} kWh`;
   const formatVoltage = (voltage: number) => `${voltage.toFixed(1)}V`;
   const formatTime = (timestamp: string) =>

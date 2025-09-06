@@ -93,8 +93,8 @@ impl AggregatorNode {
             is_online: true,
             connected_bess_nodes: Arc::new(RwLock::new(HashMap::new())),
             historical_bids: Arc::new(RwLock::new(Vec::new())),
-            max_bid_price: 25.0, // Default max bid price
-            min_bid_price: 10.0, // Default min bid price
+            max_bid_price: 2.5, // Default max bid price (2.5 c/kWh - realistic Australian FiT)
+            min_bid_price: 1.0, // Default min bid price (1.0 c/kWh - realistic Australian FiT)
         }
     }
 
@@ -106,10 +106,10 @@ impl AggregatorNode {
                 rng.gen_range(reserve_price..=max_price)
             }
             BiddingStrategy::Conservative => {
-                reserve_price + 0.5 // Bid slightly above reserve
+                reserve_price + 0.05 // Bid slightly above reserve (0.05 c/kWh)
             }
             BiddingStrategy::Aggressive => {
-                max_price - 0.5 // Bid slightly below max
+                max_price - 0.05 // Bid slightly below max (0.05 c/kWh)
             }
             BiddingStrategy::Intelligent => {
                 self.predict_winning_price(energy_amount).await
@@ -127,7 +127,7 @@ impl AggregatorNode {
         
         if historical_bids.is_empty() {
             // No historical data, use conservative approach
-            return 15.0;
+            return 1.5; // 1.5 c/kWh - realistic Australian FiT
         }
 
         // Simple prediction based on recent successful bids
@@ -139,14 +139,14 @@ impl AggregatorNode {
             .collect();
 
         if recent_successful.is_empty() {
-            return 15.0;
+            return 1.5; // 1.5 c/kWh - realistic Australian FiT
         }
 
         let avg_price: f64 = recent_successful.iter().map(|bid| bid.bid_price).sum::<f64>() / recent_successful.len() as f64;
         
         // Add small random variation to avoid identical bids
         let mut rng = rand::thread_rng();
-        avg_price + rng.gen_range(-0.5..=0.5)
+        avg_price + rng.gen_range(-0.05..=0.05) // ±0.05 c/kWh variation
     }
 
     /// Add historical bid data

@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
   output: "standalone", // Enable standalone output for Docker
   env: {
     NEXT_PUBLIC_WS_URL:
