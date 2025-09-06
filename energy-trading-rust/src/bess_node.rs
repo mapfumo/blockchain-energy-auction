@@ -1,5 +1,5 @@
 use crate::etp_message::ETPMessage;
-use crate::error::Result;
+use crate::error::{Result, ETPError};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::net::{Ipv4Addr, SocketAddr};
@@ -7,6 +7,15 @@ use std::sync::Arc;
 use tokio::net::{TcpListener, TcpStream};
 use tokio::sync::RwLock;
 use tracing::info;
+
+/// Energy status levels for BESS nodes
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum EnergyStatus {
+    Critical, // < 10% energy
+    Low,     // 10-25% energy
+    Normal,  // 25-75% energy
+    High,    // > 75% energy
+}
 
 /// BESS (Battery Energy Storage System) Node
 /// 
@@ -78,17 +87,31 @@ impl BESSNode {
             };
         }
 
-        if bid_price < self.reserve_price {
-            return BidEvaluation::Reject {
-                reason: "Bid price below reserve price".to_string(),
-                code: 1,
-            };
-        }
-
         if !self.is_online {
             return BidEvaluation::Reject {
                 reason: "BESS is offline".to_string(),
                 code: 3,
+            };
+        }
+
+        // Enhanced pricing based on energy status
+        let energy_status = self.get_energy_status();
+        let adjusted_reserve_price = match energy_status {
+            EnergyStatus::Critical => self.reserve_price * 2.0, // Double price when critical
+            EnergyStatus::Low => self.reserve_price * 1.5,      // 50% premium when low
+            EnergyStatus::Normal => self.reserve_price,         // Normal price
+            EnergyStatus::High => self.reserve_price * 0.9,     // 10% discount when high
+        };
+
+        if bid_price < adjusted_reserve_price {
+            let reason = match energy_status {
+                EnergyStatus::Critical => "Energy critical - only accepting premium bids".to_string(),
+                EnergyStatus::Low => "Energy low - bid below adjusted reserve price".to_string(),
+                _ => "Bid price below reserve price".to_string(),
+            };
+            return BidEvaluation::Reject {
+                reason,
+                code: 1,
             };
         }
 
@@ -121,6 +144,52 @@ impl BESSNode {
             self.battery_voltage,
             self.max_discharge_rate,
         )
+    }
+
+    /// Get the current energy status based on energy level
+    pub fn get_energy_status(&self) -> EnergyStatus {
+        let percentage = (self.current_energy_level / self.total_energy_capacity) * 100.0;
+        match percentage {
+            p if p < 10.0 => EnergyStatus::Critical,
+            p if p < 25.0 => EnergyStatus::Low,
+            p if p < 75.0 => EnergyStatus::Normal,
+            _ => EnergyStatus::High,
+        }
+    }
+
+    /// Sell energy and update the current energy level
+    pub fn sell_energy(&mut self, energy_amount: f64) -> Result<()> {
+        if !self.can_provide_energy(energy_amount) {
+            return Err(ETPError::InsufficientEnergy);
+        }
+        self.current_energy_level -= energy_amount;
+        info!("BESS {} sold {:.2} kWh, remaining: {:.2} kWh", 
+              self.device_id, energy_amount, self.current_energy_level);
+        Ok(())
+    }
+
+    /// Recharge energy over time (simulating solar charging)
+    pub fn recharge_energy(&mut self, time_elapsed_seconds: f64) {
+        let recharge_rate = 0.05; // 0.05 kWh per second (180 kWh/hour)
+        let recharge_amount = recharge_rate * time_elapsed_seconds;
+        let old_energy = self.current_energy_level;
+        self.current_energy_level = (self.current_energy_level + recharge_amount)
+            .min(self.total_energy_capacity);
+        
+        if self.current_energy_level > old_energy {
+            info!("BESS {} recharged {:.2} kWh, new total: {:.2} kWh", 
+                  self.device_id, self.current_energy_level - old_energy, self.current_energy_level);
+        }
+    }
+
+    /// Check if BESS is depleted (no energy available for sale)
+    pub fn is_depleted(&self) -> bool {
+        self.get_available_energy() <= 0.1 // Less than 0.1 kWh available
+    }
+
+    /// Get energy percentage (0-100)
+    pub fn get_energy_percentage(&self) -> f64 {
+        (self.current_energy_level / self.total_energy_capacity) * 100.0
     }
 
     /// Generate a query response message

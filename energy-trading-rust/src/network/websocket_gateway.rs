@@ -53,6 +53,17 @@ pub enum SystemEvent {
         energy_available: f64,
         percentage_for_sale: f64,
     },
+    EnergyDepleted {
+        bess_id: u64,
+        final_energy: f64,
+        energy_percentage: f64,
+    },
+    EnergyRecharged {
+        bess_id: u64,
+        energy_added: f64,
+        new_total: f64,
+        energy_percentage: f64,
+    },
     SystemMetrics {
         total_auctions: u64,
         total_bids: u64,
