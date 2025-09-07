@@ -1,7 +1,10 @@
-FROM rust:1.82-alpine as builder
+FROM rust:1.82 as builder
 
-# Install build dependencies
-RUN apk add --no-cache musl-dev pkgconfig openssl-dev
+# Install build dependencies for Ubuntu target
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    pkg-config \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
@@ -12,18 +15,22 @@ COPY Cargo.toml ./
 # Copy source code
 COPY src ./src
 
-# Build the application
+# Build the application for Ubuntu target
 RUN cargo build --release
 
 # Runtime stage
-FROM alpine:latest
+FROM ubuntu:24.04
 
 # Install runtime dependencies
-RUN apk add --no-cache ca-certificates curl openssl
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    libssl3 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Create app user
-RUN addgroup -g 1001 -S appgroup && \
-    adduser -u 1001 -S appuser -G appgroup
+RUN groupadd -g 1001 appgroup && \
+    useradd -u 1001 -g appgroup -s /bin/false appuser
 
 # Set working directory
 WORKDIR /app
@@ -56,4 +63,4 @@ ENV MULTICAST_GROUP=224.0.0.1
 ENV MULTICAST_PORT=8888
 
 # Start Aggregator
-CMD ["./aggregator"]
+CMD ["/app/aggregator"]

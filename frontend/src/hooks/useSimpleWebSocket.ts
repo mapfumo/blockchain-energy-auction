@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 interface UseSimpleWebSocketOptions {
   url: string;
@@ -20,66 +20,71 @@ export const useSimpleWebSocket = ({
   const [lastMessage, setLastMessage] = useState<any>(null);
   const wsRef = useRef<WebSocket | null>(null);
 
-  const connect = () => {
-    console.log("🔌 Attempting to connect to:", url);
+  // Store callbacks in refs to avoid recreating the connect function
+  const onMessageRef = useRef(onMessage);
+  const onOpenRef = useRef(onOpen);
+  const onCloseRef = useRef(onClose);
+  const onErrorRef = useRef(onError);
 
+  // Update refs when callbacks change
+  useEffect(() => {
+    onMessageRef.current = onMessage;
+    onOpenRef.current = onOpen;
+    onCloseRef.current = onClose;
+    onErrorRef.current = onError;
+  }, [onMessage, onOpen, onClose, onError]);
+
+  const connect = useCallback(() => {
     try {
       const ws = new WebSocket(url);
       wsRef.current = ws;
 
       ws.onopen = () => {
-        console.log("✅ WebSocket connected successfully");
         setIsConnected(true);
         setError(null);
-        onOpen?.();
+        onOpenRef.current?.();
       };
 
       ws.onmessage = (event) => {
-        console.log("📨 Received message:", event.data);
         try {
           const data = JSON.parse(event.data);
-          console.log("📨 Parsed data:", data);
           setLastMessage(data);
-          onMessage?.(data);
+          onMessageRef.current?.(data);
         } catch (e) {
-          console.error("❌ Failed to parse message:", e);
+          console.error("Failed to parse message:", e);
           setLastMessage(event.data);
         }
       };
 
       ws.onclose = () => {
-        console.log("🔌 WebSocket disconnected");
         setIsConnected(false);
-        onClose?.();
+        onCloseRef.current?.();
       };
 
       ws.onerror = (error) => {
-        console.error("❌ WebSocket error:", error);
         setError("WebSocket connection error");
         setIsConnected(false);
-        onError?.(error);
+        onErrorRef.current?.(error);
       };
     } catch (error) {
-      console.error("❌ Failed to create WebSocket:", error);
+      console.error("Failed to create WebSocket:", error);
       setError("Failed to create WebSocket connection");
     }
-  };
+  }, [url, onOpen, onMessage, onClose, onError]);
 
-  const disconnect = () => {
+  const disconnect = useCallback(() => {
     if (wsRef.current) {
       wsRef.current.close();
       wsRef.current = null;
       setIsConnected(false);
     }
-  };
+  }, []);
 
-  const sendMessage = (message: any) => {
+  const sendMessage = useCallback((message: any) => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify(message));
-    } else {
-      console.warn("⚠️ WebSocket is not connected");
     }
-  };
+  }, []);
 
   useEffect(() => {
     connect();

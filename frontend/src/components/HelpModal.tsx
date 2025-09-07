@@ -25,9 +25,16 @@ const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
         <div className="relative w-full max-w-md rounded-lg bg-white dark:bg-gray-800 shadow-xl">
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Keyboard Shortcuts
-              </h3>
+              <div className="flex items-center space-x-2">
+                <img
+                  src="/favicon.ico?v=2"
+                  alt="Energy Trading"
+                  className="w-6 h-6"
+                />
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Keyboard Shortcuts
+                </h3>
+              </div>
               <button
                 onClick={onClose}
                 className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"

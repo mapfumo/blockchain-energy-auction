@@ -12,10 +12,12 @@ export const AuctionView: React.FC<AuctionViewProps> = ({
   bessNodes,
   aggregators,
 }) => {
-  const formatPrice = (price: number) => `${price.toFixed(1)}¢/kWh`;
-  const formatEnergy = (energy: number) => `${energy.toFixed(1)} kWh`;
-  const formatTime = (timestamp: string) =>
-    new Date(timestamp).toLocaleTimeString();
+  const formatPrice = (price: number | undefined) =>
+    price !== undefined ? `${(price / 100).toFixed(2)}c/kWh` : "N/A";
+  const formatEnergy = (energy: number | undefined) =>
+    energy !== undefined ? `${energy.toFixed(1)} kWh` : "N/A";
+  const formatTime = (timestamp: string | undefined) =>
+    timestamp ? new Date(timestamp).toLocaleTimeString() : "N/A";
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -238,12 +240,14 @@ export const AuctionView: React.FC<AuctionViewProps> = ({
                     <div className="space-y-1">
                       {(bessNodes || []).slice(0, 3).map((node) => (
                         <div
-                          key={node.device_id}
+                          key={node.node_id}
                           className="flex items-center justify-between text-xs"
                         >
-                          <span className="text-gray-600">{node.name}</span>
+                          <span className="text-gray-600">
+                            BESS-{node.node_id}
+                          </span>
                           <span className="text-gray-500">
-                            {formatEnergy(node.current_energy_level)} @{" "}
+                            {formatEnergy(node.energy_level)} @{" "}
                             {formatPrice(node.reserve_price)}
                           </span>
                         </div>
@@ -262,12 +266,14 @@ export const AuctionView: React.FC<AuctionViewProps> = ({
                     <div className="space-y-1">
                       {(aggregators || []).slice(0, 3).map((agg) => (
                         <div
-                          key={agg.device_id}
+                          key={agg.aggregator_id}
                           className="flex items-center justify-between text-xs"
                         >
-                          <span className="text-gray-600">{agg.name}</span>
+                          <span className="text-gray-600">
+                            AGG-{agg.aggregator_id}
+                          </span>
                           <span className="text-gray-500">
-                            {agg.strategy} ({agg.success_rate.toFixed(1)}%)
+                            {agg.strategy} ({agg.reputation_score})
                           </span>
                         </div>
                       ))}

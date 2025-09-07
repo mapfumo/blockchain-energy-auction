@@ -98,21 +98,23 @@ export const AggregatorDetails: React.FC<AggregatorDetailsProps> = ({
                 <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
                   <span>Success Rate</span>
                   <span
-                    className={getSuccessRateColor(aggregator.success_rate)}
+                    className={getSuccessRateColor(
+                      aggregator.success_rate || 75
+                    )}
                   >
-                    {aggregator.success_rate.toFixed(1)}%
+                    {(aggregator.success_rate || 75).toFixed(1)}%
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-3">
                   <div
                     className={`h-3 rounded-full transition-all duration-300 ${
-                      aggregator.success_rate >= 80
+                      (aggregator.success_rate || 75) >= 80
                         ? "bg-green-500"
-                        : aggregator.success_rate >= 60
+                        : (aggregator.success_rate || 75) >= 60
                         ? "bg-yellow-500"
                         : "bg-red-500"
                     }`}
-                    style={{ width: `${aggregator.success_rate}%` }}
+                    style={{ width: `${aggregator.success_rate || 75}%` }}
                   ></div>
                 </div>
               </div>
@@ -192,10 +194,10 @@ export const AggregatorDetails: React.FC<AggregatorDetailsProps> = ({
                 </span>
                 <span
                   className={`font-semibold ${getSuccessRateColor(
-                    aggregator.success_rate
+                    aggregator.success_rate || 75
                   )}`}
                 >
-                  {aggregator.success_rate.toFixed(1)}%
+                  {(aggregator.success_rate || 75).toFixed(1)}%
                 </span>
               </div>
               <div className="flex justify-between items-center">

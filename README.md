@@ -42,7 +42,7 @@ Detailed technical documentation is available in the [`docs/`](./docs/) folder:
 - Tokio (async runtime)
 - Axum (WebSocket/REST API)
 - Serde + Bincode (binary serialization)
-- SQLx (PostgreSQL database)
+- In-memory data structures
 - Solana SDK (blockchain integration)
 - Tracing (structured logging)
 
@@ -56,8 +56,7 @@ Detailed technical documentation is available in the [`docs/`](./docs/) folder:
 **Infrastructure**
 
 - Docker + Docker Compose
-- PostgreSQL + TimescaleDB
-- Redis (caching)
+- In-memory data storage (no database)
 - GitHub Actions (CI/CD)
 
 **Blockchain (Solana)**
@@ -169,8 +168,8 @@ pub mod energy_trading {
 
 **Network Architecture**
 
-- [x] Multicast discovery for BESS registration
-- [x] Unicast communication for bidding
+- [x] HTTP registration for BESS and aggregator discovery
+- [x] Direct TCP communication for bidding (no multicast)
 - [x] Message routing and delivery guarantees
 - [x] Comprehensive test coverage (4 tests)
 
@@ -201,19 +200,21 @@ pub mod energy_trading {
 - [x] **Dynamic Pricing**: Market-driven price discovery vs fixed FiT rates
 - [x] **Economic Impact**: Clear demonstration of auction system advantages
 
-### 🔄 In Progress (Phase 3)
+### ✅ Completed (Phase 3)
 
 **Blockchain Integration**
 
-- [ ] **Solana Smart Contracts**: Anchor framework for Rust-based programs
-- [ ] **Payment Processing**: USDC and SOL token support with wallet integration
-- [ ] **Auction Settlement**: Immutable transaction records for all energy trades
-- [ ] **Reputation Tracking**: On-chain performance scoring for aggregators
-- [ ] **Dispute Resolution**: Smart contract hooks for automated conflict resolution
-- [ ] **Multi-network Support**: localnet, devnet, mainnet deployment
-- [ ] **Wallet Integration**: Phantom, Solflare, and other Solana wallet support
-- [ ] **Transaction Broadcasting**: Real-time settlement submission to blockchain
-- [ ] **Event Monitoring**: On-chain event listening and database updates
+- [x] **Solana Smart Contracts**: Complete Anchor framework implementation with comprehensive testing
+- [x] **Payment Processing**: USDC automatic token transfers with balance validation
+- [x] **Auction Settlement**: Immutable transaction records with event emission
+- [x] **Reputation Tracking**: On-chain performance scoring with overflow protection
+- [x] **Security Features**: Comprehensive error handling and access control
+- [x] **Multi-network Support**: localnet, devnet, mainnet deployment ready
+- [x] **Comprehensive Testing**: 20+ test cases covering security, edge cases, and performance
+- [x] **Account Management**: PDA-based account creation with authority validation
+- [x] **Event Monitoring**: Settlement event emission for real-time monitoring
+
+### 🔄 In Progress (Phase 4)
 
 **Performance Optimization**
 
@@ -271,7 +272,7 @@ pub mod energy_trading {
 
 - Rust 1.70+
 - Docker & Docker Compose
-- PostgreSQL 14+
+- Node.js 18+ (for frontend)
 
 ### Development Setup
 
@@ -280,8 +281,8 @@ pub mod energy_trading {
 git clone <repository-url>
 cd energy-trading
 
-# Start database
-docker-compose up -d postgres redis
+# Start gateway and containers
+docker-compose up -d
 
 # Run tests
 cd energy-trading-rust
@@ -375,7 +376,7 @@ energy-trading/
 │   │   └── pages/               # Next.js pages
 │   ├── public/                  # Static assets (logo, favicon)
 │   └── package.json
-├── programs/                     # Solana smart contracts (upcoming)
+├── energy_trading/               # Solana smart contracts ✅ COMPLETE
 ├── infrastructure/               # Docker & deployment (upcoming)
 ├── docs/                        # Documentation
 │   ├── architecture.md
@@ -411,6 +412,18 @@ MIT License - see LICENSE file for details
 - Show price improvement vs single-utility model
 - Prove economic viability for BESS owners
 
+## 🔋 Production Considerations
+
+**Battery Discharge Rate (C-Rate) Constraints**
+
+- **Current System**: Simplified energy trading without power limitations
+- **Production Requirement**: Implement C-rate constraints for realistic battery behavior
+  - Add power rating (kW) to BESS node specifications
+  - Enforce discharge rate limits (typically 0.25-1C for home batteries)
+  - Implement power-limited auctions based on battery capacity and C-rate
+  - Example: 10kWh battery @ 0.5C = 5kW maximum discharge rate
+- **Impact**: More realistic energy trading with proper battery physics constraints
+
 ---
 
-_Built with ❤️ using Rust, Solana, and Test-Driven Development_
+_Built with ❤️ using Rust, Solana, TypeScript and Test-Driven Development_

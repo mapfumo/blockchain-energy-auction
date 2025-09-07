@@ -10,14 +10,17 @@ export const BESSNodeMap: React.FC<BESSNodeMapProps> = ({
   bessNodes,
   aggregators,
 }) => {
-  const formatPrice = (price: number) => `${price.toFixed(1)}¢/kWh`;
-  const formatEnergy = (energy: number) => `${energy.toFixed(1)} kWh`;
-  const formatVoltage = (voltage: number) => `${voltage.toFixed(1)}V`;
-  const formatTime = (timestamp: string) =>
-    new Date(timestamp).toLocaleTimeString();
+  const formatPrice = (price: number | undefined) =>
+    price !== undefined ? `${(price / 100).toFixed(2)}c/kWh` : "N/A";
+  const formatEnergy = (energy: number | undefined) =>
+    energy !== undefined ? `${energy.toFixed(1)} kWh` : "N/A";
+  const formatVoltage = (voltage: number | undefined) =>
+    voltage !== undefined ? `${voltage.toFixed(1)}V` : "N/A";
+  const formatTime = (timestamp: string | undefined) =>
+    timestamp ? new Date(timestamp).toLocaleTimeString() : "N/A";
 
   const getEnergyLevelColor = (node: BESSNode) => {
-    const percentage = (node.current_energy_level / node.capacity) * 100;
+    const percentage = (node.energy_level / node.capacity_kwh) * 100;
     if (percentage >= 80) return "bg-green-500";
     if (percentage >= 50) return "bg-yellow-500";
     if (percentage >= 20) return "bg-orange-500";
@@ -25,8 +28,10 @@ export const BESSNodeMap: React.FC<BESSNodeMapProps> = ({
   };
 
   const getBatteryHealthColor = (node: BESSNode) => {
-    if (node.battery_voltage >= 400) return "text-green-600";
-    if (node.battery_voltage >= 350) return "text-yellow-600";
+    // Simplified health based on energy level
+    const percentage = (node.energy_level / node.capacity_kwh) * 100;
+    if (percentage >= 80) return "text-green-600";
+    if (percentage >= 50) return "text-yellow-600";
     return "text-red-600";
   };
 
@@ -35,10 +40,13 @@ export const BESSNodeMap: React.FC<BESSNodeMapProps> = ({
   };
 
   const totalEnergy = bessNodes.reduce(
-    (sum, node) => sum + node.current_energy_level,
+    (sum, node) => sum + node.energy_level,
     0
   );
-  const totalCapacity = bessNodes.reduce((sum, node) => sum + node.capacity, 0);
+  const totalCapacity = bessNodes.reduce(
+    (sum, node) => sum + node.capacity_kwh,
+    0
+  );
   const onlineNodes = bessNodes.filter((node) => node.is_online).length;
 
   return (
@@ -88,13 +96,13 @@ export const BESSNodeMap: React.FC<BESSNodeMapProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {bessNodes.map((node) => (
                 <div
-                  key={node.device_id}
+                  key={node.node_id}
                   className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
                 >
                   {/* Node Header */}
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-medium text-gray-900">
-                      {node.name}
+                      BESS-{node.node_id}
                     </h3>
                     <span
                       className={`text-sm font-medium ${
@@ -110,8 +118,8 @@ export const BESSNodeMap: React.FC<BESSNodeMapProps> = ({
                     <div className="flex items-center justify-between text-sm text-gray-500 mb-2">
                       <span>Energy Level</span>
                       <span>
-                        {formatEnergy(node.current_energy_level)} /{" "}
-                        {formatEnergy(node.capacity)}
+                        {formatEnergy(node.energy_level)} /{" "}
+                        {formatEnergy(node.capacity_kwh)}
                       </span>
                     </div>
                     <div className="relative">
@@ -123,7 +131,7 @@ export const BESSNodeMap: React.FC<BESSNodeMapProps> = ({
                           style={{
                             width: `${Math.min(
                               100,
-                              (node.current_energy_level / node.capacity) * 100
+                              (node.energy_level / node.capacity_kwh) * 100
                             )}%`,
                           }}
                         />
@@ -140,43 +148,32 @@ export const BESSNodeMap: React.FC<BESSNodeMapProps> = ({
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">For Sale:</span>
+                      <span className="text-gray-500">Capacity:</span>
                       <span className="font-medium text-green-600 dark:text-green-400">
-                        {node.percentage_for_sale}%
+                        {formatEnergy(node.capacity_kwh)}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Battery Voltage:</span>
-                      <span
-                        className={`font-medium ${getBatteryHealthColor(node)}`}
-                      >
-                        {formatVoltage(node.battery_voltage)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Discharge Rate:</span>
-                      <span className="font-medium text-orange-600 dark:text-orange-400">
-                        {formatEnergy(node.max_discharge_rate)}/h
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Last Updated:</span>
+                      <span className="text-gray-500">Status:</span>
                       <span className="font-medium text-purple-600 dark:text-purple-400">
-                        {formatTime(node.last_updated)}
+                        {node.is_online ? "Online" : "Offline"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Last Seen:</span>
+                      <span className="font-medium text-orange-600 dark:text-orange-400">
+                        {new Date(node.last_seen * 1000).toLocaleTimeString()}
                       </span>
                     </div>
                   </div>
 
-                  {/* Available for Sale */}
+                  {/* Energy Available */}
                   <div className="mt-4 p-3 bg-gray-50 rounded-lg">
                     <div className="text-sm text-gray-600 mb-1">
-                      Available for Sale
+                      Energy Available
                     </div>
                     <div className="text-lg font-semibold text-blue-600">
-                      {formatEnergy(
-                        (node.current_energy_level * node.percentage_for_sale) /
-                          100
-                      )}
+                      {formatEnergy(node.energy_level)}
                     </div>
                   </div>
                 </div>
@@ -202,12 +199,12 @@ export const BESSNodeMap: React.FC<BESSNodeMapProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {aggregators.map((aggregator) => (
                 <div
-                  key={aggregator.device_id}
+                  key={aggregator.aggregator_id}
                   className="border border-gray-200 rounded-lg p-4"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="text-lg font-medium text-gray-900">
-                      {aggregator.name}
+                      AGG-{aggregator.aggregator_id}
                     </h3>
                     <span
                       className={`px-2 py-1 text-xs font-medium rounded-full ${
@@ -227,25 +224,27 @@ export const BESSNodeMap: React.FC<BESSNodeMapProps> = ({
                     <div className="flex justify-between">
                       <span className="text-gray-500">Success Rate:</span>
                       <span className="font-medium text-green-600 dark:text-green-400">
-                        {(aggregator.success_rate * 100).toFixed(1)}%
+                        {aggregator.reputation_score}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Total Bids:</span>
+                      <span className="text-gray-500">Max Bid Price:</span>
                       <span className="font-medium text-blue-600 dark:text-blue-400">
-                        {aggregator.total_bids}
+                        {formatPrice(aggregator.max_bid_price)}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Avg Bid Price:</span>
+                      <span className="text-gray-500">Status:</span>
                       <span className="font-medium text-purple-600 dark:text-purple-400">
-                        {formatPrice(aggregator.average_bid_price)}
+                        {aggregator.is_online ? "Online" : "Offline"}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Last Updated:</span>
+                      <span className="text-gray-500">Last Seen:</span>
                       <span className="font-medium text-orange-600 dark:text-orange-400">
-                        {formatTime(aggregator.last_updated)}
+                        {new Date(
+                          aggregator.last_seen * 1000
+                        ).toLocaleTimeString()}
                       </span>
                     </div>
                   </div>

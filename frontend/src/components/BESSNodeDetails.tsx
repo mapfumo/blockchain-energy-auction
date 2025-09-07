@@ -12,10 +12,9 @@ export const BESSNodeDetails: React.FC<BESSNodeDetailsProps> = ({
 }) => {
   if (!node) return null;
 
-  const energyPercentage = (node.current_energy_level / node.capacity) * 100;
-  const availableForSale =
-    node.current_energy_level * (node.percentage_for_sale / 100.0);
-  const soldEnergy = node.capacity - node.current_energy_level;
+  const energyPercentage = (node.energy_level / node.capacity_kwh) * 100;
+  const availableForSale = node.energy_level; // All energy is available for sale
+  const soldEnergy = node.capacity_kwh - node.energy_level;
 
   const getBatteryHealthColor = (health: number) => {
     switch (health) {
@@ -58,10 +57,10 @@ export const BESSNodeDetails: React.FC<BESSNodeDetailsProps> = ({
             </div>
             <div>
               <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                {node.name}
+                BESS-{node.node_id}
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Device ID: {node.device_id}
+                Node ID: {node.node_id}
               </p>
             </div>
           </div>
@@ -98,8 +97,8 @@ export const BESSNodeDetails: React.FC<BESSNodeDetailsProps> = ({
                 <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
                   <span>Current Level</span>
                   <span>
-                    {node.current_energy_level.toFixed(1)} /{" "}
-                    {node.capacity.toFixed(1)} kWh
+                    {node.energy_level.toFixed(1)} /{" "}
+                    {node.capacity_kwh.toFixed(1)} kWh
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-3">
@@ -146,7 +145,7 @@ export const BESSNodeDetails: React.FC<BESSNodeDetailsProps> = ({
                   Reserve Price
                 </div>
                 <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {node.reserve_price.toFixed(1)}¢/kWh
+                  {(node.reserve_price / 100).toFixed(2)}c/kWh
                 </div>
               </div>
               <div>
@@ -154,32 +153,23 @@ export const BESSNodeDetails: React.FC<BESSNodeDetailsProps> = ({
                   Available for Sale
                 </div>
                 <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {node.percentage_for_sale.toFixed(0)}%
+                  {availableForSale.toFixed(1)} kWh
                 </div>
               </div>
               <div>
                 <div className="text-sm text-gray-500 dark:text-gray-400">
-                  Max Discharge Rate
+                  Status
                 </div>
                 <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {node.max_discharge_rate.toFixed(1)} kW
+                  {node.is_online ? "Online" : "Offline"}
                 </div>
               </div>
               <div>
                 <div className="text-sm text-gray-500 dark:text-gray-400">
-                  Battery Voltage
+                  Last Seen
                 </div>
                 <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {node.battery_voltage.toFixed(0)}V
-                  <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">
-                    {node.battery_voltage === 12
-                      ? "(Portable)"
-                      : node.battery_voltage === 24
-                      ? "(Off-grid)"
-                      : node.battery_voltage === 48
-                      ? "(Residential)"
-                      : ""}
-                  </span>
+                  {new Date(node.last_seen * 1000).toLocaleTimeString()}
                 </div>
               </div>
             </div>
@@ -192,14 +182,25 @@ export const BESSNodeDetails: React.FC<BESSNodeDetailsProps> = ({
             </h3>
             <div className="flex items-center space-x-4">
               <div
-                className={`px-3 py-1 rounded-full text-sm font-medium ${getBatteryHealthColor(
-                  node.battery_health
-                )}`}
+                className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  energyPercentage >= 80
+                    ? "text-green-600 bg-green-100"
+                    : energyPercentage >= 50
+                    ? "text-yellow-600 bg-yellow-100"
+                    : "text-red-600 bg-red-100"
+                }`}
               >
-                {getBatteryHealthText(node.battery_health)}
+                {energyPercentage >= 80
+                  ? "Excellent"
+                  : energyPercentage >= 50
+                  ? "Good"
+                  : energyPercentage >= 20
+                  ? "Fair"
+                  : "Poor"}
               </div>
               <div className="text-sm text-gray-500 dark:text-gray-400">
-                Last updated: {new Date(node.last_updated).toLocaleTimeString()}
+                Last seen:{" "}
+                {new Date(node.last_seen * 1000).toLocaleTimeString()}
               </div>
             </div>
           </div>

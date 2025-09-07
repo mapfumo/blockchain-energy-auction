@@ -60,7 +60,7 @@ pub struct DiscoveryMessage {
     pub timestamp: u64,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BESSDiscovery {
     pub r#type: String,
     pub node_id: String,
@@ -80,7 +80,7 @@ pub struct AuctionStarted {
     pub timestamp: u64,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BidPlaced {
     pub r#type: String,
     pub aggregator_id: String,
@@ -176,7 +176,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Start services
     let state_clone = app_state.clone();
     tokio::spawn(async move {
-        start_multicast_discovery(state_clone, multicast_group, multicast_port).await;
+        register_with_gateway(state_clone).await;
+    });
+
+    let state_clone = app_state.clone();
+    tokio::spawn(async move {
+        start_bess_querying(state_clone).await;
     });
 
     let state_clone = app_state.clone();
@@ -330,56 +335,165 @@ fn calculate_bid_price(reserve_price: u32, strategy: &str) -> u32 {
     }
 }
 
-async fn start_multicast_discovery(
-    state: Arc<AppState>,
-    multicast_group: String,
-    multicast_port: u16,
-) {
-    let socket = match UdpSocket::bind("0.0.0.0:0").await {
-        Ok(socket) => socket,
-        Err(e) => {
-            error!("Failed to create UDP socket: {}", e);
-            return;
-        }
-    };
-
-    info!("Started multicast discovery on {}:{}", multicast_group, multicast_port);
-
-    // Listen for BESS node announcements
-    let mut buffer = [0; 1024];
+async fn register_with_gateway(state: Arc<AppState>) {
+    // Wait a bit for gateway to be ready
+    sleep(Duration::from_secs(5)).await;
+    
+    let client = reqwest::Client::new();
+    let url = format!("http://{}:{}/api/register/aggregator", state.gateway_host, state.gateway_port);
+    
     loop {
-        match socket.recv_from(&mut buffer).await {
-            Ok((len, addr)) => {
-                if let Ok(message) = serde_json::from_slice::<BESSDiscovery>(&buffer[..len]) {
-                    if message.r#type == "BESS_DISCOVERY" {
-                        info!("Discovered BESS node {}: {} kWh available", 
-                              message.node_id, message.energy_level);
-                        
-                        // Store BESS node info
-                        state.available_bess_nodes.write().await
-                            .insert(message.node_id.clone(), message.clone());
-
-                        // Send discovery response
-                        let aggregator = state.aggregator.read().await;
-                        let response = DiscoveryMessage {
-                            r#type: "AGGREGATOR_DISCOVERY".to_string(),
-                            aggregator_id: aggregator.aggregator_id.clone(),
-                            strategy: aggregator.strategy.clone(),
-                            max_bid_price: aggregator.max_bid_price,
-                            reputation_score: aggregator.reputation_score,
-                            timestamp: current_timestamp(),
-                        };
-
-                        if let Ok(response_bytes) = serde_json::to_vec(&response) {
-                            let _ = socket.send_to(&response_bytes, addr).await;
-                        }
-                    }
+        let aggregator = state.aggregator.read().await;
+        
+        // Create registration payload matching gateway's Aggregator struct
+        let registration_data = serde_json::json!({
+            "aggregator_id": aggregator.aggregator_id,
+            "strategy": aggregator.strategy,
+            "max_bid_price": aggregator.max_bid_price,
+            "reputation_score": aggregator.reputation_score,
+            "is_online": aggregator.is_online,
+            "last_seen": current_timestamp()
+        });
+        
+        info!("Registering aggregator {} with gateway at {}", aggregator.aggregator_id, url);
+        
+        match client.post(&url).json(&registration_data).send().await {
+            Ok(response) => {
+                if response.status().is_success() {
+                    info!("Successfully registered aggregator {} with gateway", aggregator.aggregator_id);
+                    break; // Registration successful, exit loop
+                } else {
+                    warn!("Gateway registration failed with status: {}", response.status());
                 }
             }
             Err(e) => {
-                error!("Multicast discovery error: {}", e);
-                sleep(Duration::from_secs(1)).await;
+                warn!("Failed to register with gateway: {}", e);
             }
+        }
+        
+        // Wait before retrying
+        sleep(Duration::from_secs(10)).await;
+    }
+}
+
+async fn start_bess_querying(state: Arc<AppState>) {
+    // Wait for registration to complete
+    sleep(Duration::from_secs(10)).await;
+    
+    let client = reqwest::Client::new();
+    let gateway_url = format!("http://{}:{}/api/bess-list", state.gateway_host, state.gateway_port);
+    
+    let mut interval = interval(Duration::from_secs(30)); // Query every 30 seconds
+    
+    loop {
+        interval.tick().await;
+        
+        // Get BESS list from gateway
+        match client.get(&gateway_url).send().await {
+            Ok(response) => {
+                if response.status().is_success() {
+                    match response.json::<serde_json::Value>().await {
+                        Ok(data) => {
+                            if let Some(bess_nodes) = data.get("bess_nodes").and_then(|nodes| nodes.as_array()) {
+                                info!("Retrieved {} BESS nodes from gateway", bess_nodes.len());
+                                
+                                // Query each BESS node directly
+                                for bess_node in bess_nodes {
+                                    if let Some(node_id) = bess_node.get("node_id").and_then(|id| id.as_str()) {
+                                        query_bess_node_directly(state.clone(), node_id, bess_node).await;
+                                    }
+                                }
+                            }
+                        }
+                        Err(e) => {
+                            warn!("Failed to parse BESS list response: {}", e);
+                        }
+                    }
+                } else {
+                    warn!("Failed to get BESS list from gateway: {}", response.status());
+                }
+            }
+            Err(e) => {
+                warn!("Failed to request BESS list from gateway: {}", e);
+            }
+        }
+    }
+}
+
+async fn query_bess_node_directly(state: Arc<AppState>, node_id: &str, bess_data: &serde_json::Value) {
+    let aggregator = state.aggregator.read().await;
+    let client = reqwest::Client::new();
+    
+    // Construct BESS node URL (assuming BESS nodes run on port 8081)
+    let bess_url = format!("http://bess-{}:8081/query", node_id);
+    
+    // Create query payload
+    let query_data = serde_json::json!({
+        "aggregator_id": aggregator.aggregator_id,
+        "query_type": "energy_availability",
+        "timestamp": current_timestamp()
+    });
+    
+    info!("AGG-{} querying BESS-{} directly at {}", aggregator.aggregator_id, node_id, bess_url);
+    
+    // Report the direct query to the gateway
+    let gateway_query_url = format!("http://{}:{}/api/direct-query", state.gateway_host, state.gateway_port);
+    let direct_query_data = serde_json::json!({
+        "aggregator_id": aggregator.aggregator_id,
+        "bess_node_id": node_id,
+        "query_type": "energy_availability",
+        "timestamp": current_timestamp()
+    });
+    
+    let _ = client.post(&gateway_query_url).json(&direct_query_data).send().await;
+    
+    match client.post(&bess_url).json(&query_data).send().await {
+        Ok(response) => {
+            if response.status().is_success() {
+                match response.json::<serde_json::Value>().await {
+                    Ok(query_response) => {
+                        if let Some(available_energy) = query_response.get("available_energy").and_then(|e| e.as_f64()) {
+                            if let Some(reserve_price) = query_response.get("reserve_price").and_then(|p| p.as_u64()) {
+                                info!("BESS-{} responded to AGG-{}: {:.1} kWh at {:.2}c/kWh", 
+                                      node_id, aggregator.aggregator_id, available_energy, reserve_price as f64 / 100.0);
+                                
+                                // Report the response to the gateway
+                                let gateway_response_url = format!("http://{}:{}/api/direct-query-response", state.gateway_host, state.gateway_port);
+                                let response_data = serde_json::json!({
+                                    "aggregator_id": aggregator.aggregator_id,
+                                    "bess_node_id": node_id,
+                                    "energy_available": available_energy,
+                                    "reserve_price": reserve_price,
+                                    "response_time_ms": 50, // Simulated response time
+                                    "timestamp": current_timestamp()
+                                });
+                                
+                                let _ = client.post(&gateway_response_url).json(&response_data).send().await;
+                                
+                                // Store the response in available_bess_nodes
+                                let mut available_nodes = state.available_bess_nodes.write().await;
+                                available_nodes.insert(node_id.to_string(), BESSDiscovery {
+                                    r#type: "BESS_DISCOVERY".to_string(),
+                                    node_id: node_id.to_string(),
+                                    node_type: "BESS".to_string(),
+                                    capacity_kwh: bess_data.get("capacity_kwh").and_then(|c| c.as_f64()).unwrap_or(0.0),
+                                    energy_level: available_energy,
+                                    reserve_price: reserve_price as u32,
+                                    timestamp: current_timestamp(),
+                                });
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        warn!("Failed to parse BESS response from {}: {}", node_id, e);
+                    }
+                }
+            } else {
+                warn!("BESS-{} query failed with status: {}", node_id, response.status());
+            }
+        }
+        Err(e) => {
+            warn!("Failed to query BESS-{}: {}", node_id, e);
         }
     }
 }

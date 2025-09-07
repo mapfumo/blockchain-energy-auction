@@ -42,18 +42,14 @@ sleep 10
 echo "🏥 Checking service health..."
 
 # Check Gateway
-if curl -f http://localhost:3001/health > /dev/null 2>&1; then
+if curl -f http://localhost:8080/health > /dev/null 2>&1; then
     echo "✅ Gateway is healthy"
 else
     echo "⚠️  Gateway health check failed"
 fi
 
-# Check Frontend
-if curl -f http://localhost:3000 > /dev/null 2>&1; then
-    echo "✅ Frontend is healthy"
-else
-    echo "⚠️  Frontend health check failed"
-fi
+# Check Frontend (run locally)
+echo "ℹ️  Frontend should be run locally: cd frontend && npm install && npm run dev"
 
 # Check BESS Nodes
 for i in 001 002 003; do
@@ -85,7 +81,6 @@ echo "🎉 Energy Trading System is running!"
 echo "=================================="
 echo "📊 Frontend Dashboard: http://localhost:3000"
 echo "🔌 WebSocket Gateway: ws://localhost:8080"
-echo "🌐 REST API: http://localhost:3001"
 echo "🗄️  Database: localhost:5432"
 echo "⛓️  Solana RPC: http://localhost:8899"
 echo ""
@@ -93,9 +88,9 @@ echo "📋 Available Services:"
 echo "  - 3x BESS Nodes (Energy Storage)"
 echo "  - 2x Aggregators (Energy Buyers)"
 echo "  - 1x Gateway (Orchestrator)"
-echo "  - 1x Frontend (Dashboard)"
-echo "  - 1x PostgreSQL (Database)"
-echo "  - 1x Solana Validator (Blockchain)"
+echo "  - 1x Frontend (Dashboard) - Run locally"
+echo "  - 1x PostgreSQL (Database) - Optional"
+echo "  - 1x Solana Validator (Blockchain) - Local"
 echo ""
 echo "🔍 To view logs: docker-compose logs -f [service_name]"
 echo "🛑 To stop: ./stop-energy-trading.sh"

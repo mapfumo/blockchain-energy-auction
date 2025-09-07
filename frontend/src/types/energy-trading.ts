@@ -19,30 +19,21 @@ export interface ETPMessage {
 }
 
 export interface BESSNode {
-  device_id: number;
-  name: string;
-  capacity: number;
-  current_energy_level: number;
+  node_id: string;
+  energy_level: number;
+  capacity_kwh: number;
   reserve_price: number; // Price in cents/kWh
-  percentage_for_sale: number; // Percentage (0-100)
-  battery_voltage: number;
-  max_discharge_rate: number;
-  battery_health: number; // 0=Excellent, 1=Good, 2=Fair, 3=Poor
   is_online: boolean;
-  last_updated: string;
+  last_seen: number;
 }
 
 export interface AggregatorNode {
-  device_id: number;
-  name: string;
-  strategy: BiddingStrategy;
+  aggregator_id: string;
+  strategy: string;
+  max_bid_price: number;
+  reputation_score: number;
   is_online: boolean;
-  success_rate: number;
-  total_bids: number;
-  successful_bids: number;
-  total_energy_bought: number; // Total energy bought in kWh
-  average_bid_price: number; // Price in cents/kWh
-  last_updated: string;
+  last_seen: number;
 }
 
 export type BiddingStrategy =
@@ -64,7 +55,15 @@ export interface SystemEvent {
     | "EnergyRecharged"
     | "SystemMetrics"
     | "BESSNodeStatus"
-    | "AggregatorStatus";
+    | "AggregatorStatus"
+    | "BESSNodeDiscovered"
+    | "AggregatorDiscovered"
+    | "HeartbeatReceived"
+    | "BESSNodeRegistered"
+    | "AggregatorRegistered"
+    | "DirectQuerySent"
+    | "DirectQueryResponse"
+    | "INITIAL_DATA";
   data:
     | AuctionStartedEvent
     | BidPlacedEvent
@@ -76,7 +75,14 @@ export interface SystemEvent {
     | EnergyRechargedEvent
     | SystemMetricsEvent
     | BESSNodeStatusEvent
-    | AggregatorStatusEvent;
+    | AggregatorStatusEvent
+    | BESSNodeDiscoveredEvent
+    | AggregatorDiscoveredEvent
+    | HeartbeatReceivedEvent
+    | BESSNodeRegisteredEvent
+    | AggregatorRegisteredEvent
+    | DirectQuerySentEvent
+    | DirectQueryResponseEvent;
   timestamp: string;
 }
 
@@ -96,9 +102,9 @@ export interface BidPlacedEvent {
 
 export interface BidAcceptedEvent {
   auction_id: number;
-  aggregator_id: number;
-  bess_id: number;
-  final_price: number; // Price in cents/kWh
+  aggregator_id: string;
+  bess_node_id: string;
+  price: number; // Price in cents/kWh
   energy_amount: number; // Energy in kWh
 }
 
@@ -110,23 +116,30 @@ export interface BidRejectedEvent {
 
 export interface AuctionCompletedEvent {
   auction_id: number;
-  winner_aggregator_id: number;
-  seller_bess_id: number;
-  energy_sold: number; // Energy in kWh
+  winner: string;
+  seller: string;
+  energy_amount: number; // Energy in kWh
   final_price: number; // Price in cents/kWh
   total_value: number; // Total value in cents
   auction_duration_ms: number; // Duration in milliseconds
 }
 
 export interface QuerySentEvent {
-  aggregator_id: number;
-  bess_id: number;
+  aggregator_id: string;
+  bess_node_id: string;
+  query_type: string;
+  timestamp: number;
 }
 
 export interface QueryResponseEvent {
-  bess_id: number;
+  bess_node_id: string;
+  aggregator_id: string;
   energy_available: number; // Energy in kWh
-  percentage_for_sale: number; // Percentage (0-100)
+  reserve_price: number; // Price in cents/kWh
+  capacity_kwh: number; // Capacity in kWh
+  battery_health: number; // Battery health (0-3)
+  response_time_ms: number; // Response time in milliseconds
+  timestamp: number;
 }
 
 export interface EnergyDepletedEvent {
@@ -212,4 +225,63 @@ export interface WebSocketConnection {
   lastMessage: SystemEvent | null;
   error: string | null;
   reconnectAttempts: number;
+}
+
+// Multicast Discovery Events
+export interface BESSNodeDiscoveredEvent {
+  node_id: string;
+  energy_level: number;
+  capacity_kwh: number;
+  reserve_price: number;
+  discovery_address: string;
+  timestamp: number;
+}
+
+export interface AggregatorDiscoveredEvent {
+  aggregator_id: string;
+  strategy: string;
+  max_bid_price: number;
+  reputation_score: number;
+  discovery_address: string;
+  timestamp: number;
+}
+
+export interface HeartbeatReceivedEvent {
+  node_id: string;
+  node_type: string;
+  heartbeat_address: string;
+  timestamp: number;
+}
+
+// Registration Events
+export interface BESSNodeRegisteredEvent {
+  node_id: string;
+  energy_level: number;
+  capacity_kwh: number;
+  reserve_price: number;
+  timestamp: number;
+}
+
+export interface AggregatorRegisteredEvent {
+  aggregator_id: string;
+  strategy: string;
+  max_bid_price: number;
+  reputation_score: number;
+  timestamp: number;
+}
+
+export interface DirectQuerySentEvent {
+  aggregator_id: string;
+  bess_node_id: string;
+  query_type: string;
+  timestamp: number;
+}
+
+export interface DirectQueryResponseEvent {
+  aggregator_id: string;
+  bess_node_id: string;
+  energy_available: number;
+  reserve_price: number;
+  response_time_ms: number;
+  timestamp: number;
 }

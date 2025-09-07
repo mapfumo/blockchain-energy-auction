@@ -24,12 +24,12 @@ export const SystemMetrics: React.FC<SystemMetricsProps> = ({
   const onlineBessNodes = bessNodes.filter((node) => node.is_online).length;
   const onlineAggregators = aggregators.filter((agg) => agg.is_online).length;
   const totalEnergyAvailable = bessNodes.reduce(
-    (sum, node) => sum + node.current_energy_level,
+    (sum, node) => sum + node.energy_level,
     0
   );
   const averageBatteryHealth =
     bessNodes.length > 0
-      ? bessNodes.reduce((sum, node) => sum + node.battery_voltage, 0) /
+      ? bessNodes.reduce((sum, node) => sum + node.reserve_price / 100, 0) /
         bessNodes.length
       : 0;
 
@@ -53,8 +53,8 @@ export const SystemMetrics: React.FC<SystemMetricsProps> = ({
   );
 
   const batteryHealth = getHealthStatus(averageBatteryHealth, {
-    good: 400,
-    warning: 350,
+    good: 6.0,
+    warning: 4.0,
   });
 
   return (
@@ -174,22 +174,22 @@ export const SystemMetrics: React.FC<SystemMetricsProps> = ({
         </div>
       </div>
 
-      {/* Battery Health Overview */}
+      {/* BESS Node Overview */}
       <div className="bg-white shadow rounded-lg">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-medium text-gray-900">
-            Battery Health Overview
+            BESS Node Overview
           </h2>
         </div>
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <div className="text-sm text-gray-500 mb-2">
-                Average Battery Voltage
+                Average Reserve Price
               </div>
               <div className="flex items-center">
                 <div className="text-3xl font-bold text-gray-900 mr-4">
-                  {averageBatteryHealth.toFixed(1)}V
+                  {averageBatteryHealth.toFixed(1)}c/kWh
                 </div>
                 <div className={`text-sm font-medium ${batteryHealth.color}`}>
                   {batteryHealth.status}
@@ -198,23 +198,25 @@ export const SystemMetrics: React.FC<SystemMetricsProps> = ({
             </div>
             <div>
               <div className="text-sm text-gray-500 mb-2">
-                Battery Health Distribution
+                BESS Node Distribution
               </div>
               <div className="space-y-2">
                 {bessNodes.slice(0, 5).map((node) => {
-                  const health = getHealthStatus(node.battery_voltage, {
-                    good: 400,
-                    warning: 350,
+                  const health = getHealthStatus(node.reserve_price / 100, {
+                    good: 6.0,
+                    warning: 4.0,
                   });
                   return (
                     <div
-                      key={node.device_id}
+                      key={node.node_id}
                       className="flex items-center justify-between"
                     >
-                      <span className="text-sm text-gray-600">{node.name}</span>
+                      <span className="text-sm text-gray-600">
+                        BESS-{node.node_id}
+                      </span>
                       <div className="flex items-center">
                         <span className="text-sm text-gray-500 mr-2">
-                          {node.battery_voltage.toFixed(1)}V
+                          {(node.reserve_price / 100).toFixed(1)}c/kWh
                         </span>
                         <span className={`text-xs font-medium ${health.color}`}>
                           {health.status}
@@ -253,21 +255,21 @@ export const SystemMetrics: React.FC<SystemMetricsProps> = ({
                   </h3>
                   <div className="space-y-2">
                     {bessNodes
-                      .sort(
-                        (a, b) =>
-                          new Date(b.last_updated).getTime() -
-                          new Date(a.last_updated).getTime()
-                      )
+                      .sort((a, b) => b.last_seen - a.last_seen)
                       .slice(0, 5)
                       .map((node) => (
                         <div
-                          key={node.device_id}
+                          key={node.node_id}
                           className="flex items-center justify-between text-sm"
                         >
-                          <span className="text-gray-600">{node.name}</span>
+                          <span className="text-gray-600">
+                            BESS-{node.node_id}
+                          </span>
                           <div className="flex items-center space-x-2">
                             <span className="text-gray-500">
-                              {formatTime(node.last_updated)}
+                              {new Date(
+                                node.last_seen * 1000
+                              ).toLocaleTimeString()}
                             </span>
                             <span
                               className={`px-2 py-1 text-xs rounded-full ${
@@ -289,21 +291,21 @@ export const SystemMetrics: React.FC<SystemMetricsProps> = ({
                   </h3>
                   <div className="space-y-2">
                     {aggregators
-                      .sort(
-                        (a, b) =>
-                          new Date(b.last_updated).getTime() -
-                          new Date(a.last_updated).getTime()
-                      )
+                      .sort((a, b) => b.last_seen - a.last_seen)
                       .slice(0, 5)
                       .map((agg) => (
                         <div
-                          key={agg.device_id}
+                          key={agg.aggregator_id}
                           className="flex items-center justify-between text-sm"
                         >
-                          <span className="text-gray-600">{agg.name}</span>
+                          <span className="text-gray-600">
+                            AGG-{agg.aggregator_id}
+                          </span>
                           <div className="flex items-center space-x-2">
                             <span className="text-gray-500">
-                              {formatTime(agg.last_updated)}
+                              {new Date(
+                                agg.last_seen * 1000
+                              ).toLocaleTimeString()}
                             </span>
                             <span className="text-xs text-gray-500">
                               {agg.strategy}

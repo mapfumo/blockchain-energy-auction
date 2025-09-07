@@ -20,7 +20,7 @@ export const NodeSelector: React.FC<NodeSelectorProps> = ({
 
   const handleBESSChange = (nodeId: string) => {
     const node = nodeId
-      ? bessNodes.find((n) => n.device_id.toString() === nodeId) || null
+      ? bessNodes.find((n) => n.node_id === nodeId) || null
       : null;
     setSelectedBESS(node);
     onBESSSelect(node);
@@ -28,7 +28,7 @@ export const NodeSelector: React.FC<NodeSelectorProps> = ({
 
   const handleAggregatorChange = (aggregatorId: string) => {
     const aggregator = aggregatorId
-      ? aggregators.find((a) => a.device_id.toString() === aggregatorId) || null
+      ? aggregators.find((a) => a.aggregator_id === aggregatorId) || null
       : null;
     setSelectedAggregator(aggregator);
     onAggregatorSelect(aggregator);
@@ -52,21 +52,22 @@ export const NodeSelector: React.FC<NodeSelectorProps> = ({
               BESS Nodes
             </label>
             <select
-              value={selectedBESS?.device_id.toString() || ""}
+              value={selectedBESS?.node_id || ""}
               onChange={(e) => handleBESSChange(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-gray-100"
             >
               <option value="">Select a BESS node...</option>
               {bessNodes.map((node) => (
-                <option key={node.device_id} value={node.device_id.toString()}>
-                  {node.name} - {node.current_energy_level.toFixed(1)} kWh
+                <option key={node.node_id} value={node.node_id}>
+                  BESS-{node.node_id} - {node.energy_level.toFixed(1)} kWh
                   available
                 </option>
               ))}
             </select>
             {selectedBESS && (
               <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                Selected: {selectedBESS.name} (ID: {selectedBESS.device_id})
+                Selected: BESS-{selectedBESS.node_id} (
+                {selectedBESS.energy_level.toFixed(1)} kWh)
               </div>
             )}
           </div>
@@ -77,25 +78,25 @@ export const NodeSelector: React.FC<NodeSelectorProps> = ({
               Aggregators
             </label>
             <select
-              value={selectedAggregator?.device_id.toString() || ""}
+              value={selectedAggregator?.aggregator_id || ""}
               onChange={(e) => handleAggregatorChange(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-gray-100"
             >
               <option value="">Select an aggregator...</option>
               {aggregators.map((aggregator) => (
                 <option
-                  key={aggregator.device_id}
-                  value={aggregator.device_id.toString()}
+                  key={aggregator.aggregator_id}
+                  value={aggregator.aggregator_id}
                 >
-                  {aggregator.name} - {aggregator.strategy} (
-                  {aggregator.success_rate.toFixed(1)}% success)
+                  AGG-{aggregator.aggregator_id} - {aggregator.strategy}{" "}
+                  Strategy
                 </option>
               ))}
             </select>
             {selectedAggregator && (
               <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                Selected: {selectedAggregator.name} (ID:{" "}
-                {selectedAggregator.device_id})
+                Selected: AGG-{selectedAggregator.aggregator_id} (
+                {selectedAggregator.strategy})
               </div>
             )}
           </div>

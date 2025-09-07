@@ -33,10 +33,10 @@ The Energy Trading System is a distributed real-time auction platform enabling c
                                ▼
                  ┌─────────────────────────────┐
                  │      Data Layer             │
-                 │ ┌──────────┐ ┌────────────┐ │
-                 │ │PostgreSQL│ │   Redis    │ │
-                 │ │TimescaleDB│ │  (Cache)   │ │
-                 │ └──────────┘ └────────────┘ │
+                 │ ┌─────────────────────────┐ │
+                 │ │   In-Memory Storage      │ │
+                 │ │   (HashMap-based)        │ │
+                 │ └─────────────────────────┘ │
                  └─────────────────────────────┘
 ```
 
@@ -50,17 +50,17 @@ The Energy Trading System is a distributed real-time auction platform enabling c
 │              BESS Node                  │
 ├─────────────────────────────────────────┤
 │  ┌─────────────────┐ ┌───────────────┐  │
-│  │   TCP Server    │ │  Battery Core │  │
-│  │   (Tokio)       │ │   State       │  │
+│  │ HTTP Registration│ │  Battery Core │  │
+│  │   (Gateway)     │ │   State       │  │
 │  │                 │ │               │  │
 │  │ ┌─────────────┐ │ │ ┌───────────┐ │  │
-│  │ │ Message     │ │ │ │ Energy    │ │  │
-│  │ │ Handler     │ │ │ │ Manager   │ │  │
+│  │ │ Gateway     │ │ │ │ Energy    │ │  │
+│  │ │ Client      │ │ │ │ Manager   │ │  │
 │  │ └─────────────┘ │ │ └───────────┘ │  │
 │  │                 │ │               │  │
 │  │ ┌─────────────┐ │ │ ┌───────────┐ │  │
-│  │ │ Connection  │ │ │ │ Bid       │ │  │
-│  │ │ Manager     │ │ │ │ Evaluator │ │  │
+│  │ │ TCP Server  │ │ │ │ Bid       │ │  │
+│  │ │ (Direct)    │ │ │ │ Evaluator │ │  │
 │  │ └─────────────┘ │ │ └───────────┘ │  │
 │  └─────────────────┘ └───────────────┘  │
 ├─────────────────────────────────────────┤
@@ -74,7 +74,8 @@ The Energy Trading System is a distributed real-time auction platform enabling c
 
 **✅ Implemented Components:**
 
-- **BESSTCPServer**: Production-ready TCP server with concurrent connection handling
+- **HTTP Registration**: Registers with gateway for device discovery
+- **Direct TCP Server**: Handles direct connections from aggregators
 - **Message Handler**: Processes all 10 ETP message types with timing constraints
 - **Connection Manager**: Handles multiple aggregator connections simultaneously
 - **Battery Core State**: Energy levels, pricing, health status management
@@ -98,17 +99,17 @@ The Energy Trading System is a distributed real-time auction platform enabling c
 │           Aggregator Node               │
 ├─────────────────────────────────────────┤
 │  ┌─────────────────┐ ┌───────────────┐  │
-│  │   TCP Client    │ │ Bidding Core  │  │
-│  │   Manager       │ │               │  │
+│  │ HTTP Registration│ │ Bidding Core  │  │
+│  │   (Gateway)     │ │               │  │
 │  │                 │ │               │  │
 │  │ ┌─────────────┐ │ │ ┌───────────┐ │  │
-│  │ │ Connection  │ │ │ │ Strategy  │ │  │
-│  │ │ Pool        │ │ │ │ Engine    │ │  │
+│  │ │ Gateway     │ │ │ │ Strategy  │ │  │
+│  │ │ Client      │ │ │ │ Engine    │ │  │
 │  │ └─────────────┘ │ │ └───────────┘ │  │
 │  │                 │ │               │  │
 │  │ ┌─────────────┐ │ │ ┌───────────┐ │  │
-│  │ │ Discovery   │ │ │ │ Market    │ │  │
-│  │ │ Service     │ │ │ │ Analyzer  │ │  │
+│  │ │ Direct TCP  │ │ │ │ Market    │ │  │
+│  │ │ Client      │ │ │ │ Analyzer  │ │  │
 │  │ └─────────────┘ │ │ └───────────┘ │  │
 │  └─────────────────┘ └───────────────┘  │
 ├─────────────────────────────────────────┤
@@ -122,6 +123,8 @@ The Energy Trading System is a distributed real-time auction platform enabling c
 
 **✅ Implemented Components:**
 
+- **HTTP Registration**: Registers with gateway for device discovery
+- **Direct TCP Client**: Connects directly to BESS nodes after registration
 - **AggregatorNode**: Intelligent bidding strategies with historical context
 - **Bidding Strategies**: Multiple algorithms (aggressive, conservative, adaptive)
 - **Historical Tracking**: Bid success rates and price prediction
@@ -151,7 +154,7 @@ The Energy Trading System is a distributed real-time auction platform enabling c
 ├─────────────────────────────────────────┤
 │  ┌─────────────────┐ ┌───────────────┐  │
 │  │  Data Layer     │ │  Monitoring   │  │
-│  │  (PostgreSQL)   │ │  & Metrics    │  │
+│  │  (In-Memory)     │ │  & Metrics    │  │
 │  └─────────────────┘ └───────────────┘  │
 └─────────────────────────────────────────┘
 ```
@@ -1267,3 +1270,62 @@ mod tests {
 - Blockchain settlement integration tests
 
 This architecture provides a solid foundation for building your energy trading system with all the components we discussed. The design emphasizes performance, scalability, and maintainability while preserving the core auction mechanics from your research.
+
+## 12. Production Considerations
+
+### 12.1 Battery Discharge Rate (C-Rate) Constraints
+
+**Current Implementation**
+
+- Simplified energy trading without power limitations
+- BESS nodes can discharge any amount instantly
+- No realistic battery physics constraints
+
+**Production Requirements**
+
+- **Power Rating (kW)**: Add maximum discharge power to BESS specifications
+- **C-Rate Limits**: Enforce discharge rate constraints (typically 0.25-1C)
+- **Power-Limited Auctions**: Implement auctions based on battery capacity and C-rate
+- **Realistic Discharge Times**: Calculate minimum discharge duration based on power rating
+
+**Example Implementation**
+
+```rust
+pub struct BESSNode {
+    pub node_id: String,
+    pub energy_level: f64,        // kWh
+    pub capacity_kwh: f64,         // kWh
+    pub power_rating_kw: f64,      // kW - NEW!
+    pub reserve_price: u32,        // cents/kWh
+    pub is_online: bool,
+    pub last_seen: u64,
+}
+
+impl BESSNode {
+    pub fn c_rate(&self) -> f64 {
+        self.power_rating_kw / self.capacity_kwh
+    }
+
+    pub fn max_discharge_time_hours(&self) -> f64 {
+        self.capacity_kwh / self.power_rating_kw
+    }
+
+    pub fn can_discharge(&self, energy_kwh: f64, duration_hours: f64) -> bool {
+        let required_power_kw = energy_kwh / duration_hours;
+        required_power_kw <= self.power_rating_kw
+    }
+}
+```
+
+**Real-World Examples**
+
+- **Home Battery**: 10kWh, 5kW → 0.5C (2-hour minimum discharge)
+- **Commercial**: 100kWh, 50kW → 0.5C (2-hour minimum discharge)
+- **Grid-Scale**: 1000kWh, 500kW → 0.5C (2-hour minimum discharge)
+
+**Impact on Trading**
+
+- More realistic auction outcomes
+- Power-limited energy trading
+- Proper battery physics constraints
+- Enhanced market simulation accuracy

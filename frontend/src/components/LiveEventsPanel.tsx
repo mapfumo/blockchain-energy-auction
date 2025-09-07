@@ -12,12 +12,34 @@ import {
   SystemMetricsEvent,
   BESSNodeStatusEvent,
   AggregatorStatusEvent,
+  BESSNodeDiscoveredEvent,
+  AggregatorDiscoveredEvent,
+  HeartbeatReceivedEvent,
+  BESSNodeRegisteredEvent,
+  AggregatorRegisteredEvent,
+  DirectQuerySentEvent,
+  DirectQueryResponseEvent,
 } from "../types/energy-trading";
 
 interface LiveEventsPanelProps {
   events: SystemEvent[];
   maxEvents?: number;
 }
+
+// Helper function to safely format numbers
+const safeToFixed = (
+  value: number | undefined,
+  decimals: number = 1
+): string => {
+  return value !== undefined ? value.toFixed(decimals) : "N/A";
+};
+
+// Helper function to safely format prices (convert cents to c/kWh)
+const safePrice = (value: number | undefined, decimals: number = 2): string => {
+  return value !== undefined
+    ? `${(value / 100).toFixed(decimals)}c/kWh`
+    : "N/A";
+};
 
 type EventFilter =
   | "ALL"
@@ -32,7 +54,18 @@ type EventFilter =
   | "EnergyRecharged"
   | "BESSNodeStatus"
   | "AggregatorStatus"
-  | "SystemMetrics";
+  | "SystemMetrics"
+  | "BESSNodeDiscovered"
+  | "AggregatorDiscovered"
+  | "HeartbeatReceived"
+  | "BESSNodeRegistered"
+  | "AggregatorRegistered"
+  | "DirectQuerySent"
+  | "DirectQueryResponse"
+  | "MULTICAST"
+  | "QUERIES"
+  | "REGISTRATIONS"
+  | "DIRECT_QUERIES";
 
 export const LiveEventsPanel: React.FC<LiveEventsPanelProps> = ({
   events,
@@ -44,6 +77,27 @@ export const LiveEventsPanel: React.FC<LiveEventsPanelProps> = ({
   // Filter events based on selected filter
   const filteredEvents = events.filter((event) => {
     if (filter === "ALL") return true;
+    if (filter === "MULTICAST") {
+      return (
+        event.type === "BESSNodeDiscovered" ||
+        event.type === "AggregatorDiscovered" ||
+        event.type === "HeartbeatReceived"
+      );
+    }
+    if (filter === "QUERIES") {
+      return event.type === "QuerySent" || event.type === "QueryResponse";
+    }
+    if (filter === "REGISTRATIONS") {
+      return (
+        event.type === "BESSNodeRegistered" ||
+        event.type === "AggregatorRegistered"
+      );
+    }
+    if (filter === "DIRECT_QUERIES") {
+      return (
+        event.type === "DirectQuerySent" || event.type === "DirectQueryResponse"
+      );
+    }
     return event.type === filter;
   });
 
@@ -61,11 +115,9 @@ export const LiveEventsPanel: React.FC<LiveEventsPanelProps> = ({
           color: "text-blue-600",
           bgColor: "bg-blue-50 dark:bg-blue-900/20",
           title: "Auction Started",
-          description: `Auction #${
-            data.auction_id
-          } - ${data.total_energy.toFixed(
-            1
-          )} kWh available at ${data.reserve_price.toFixed(1)}¢/kWh`,
+          description: `Auction #${data.auction_id} - ${safeToFixed(
+            data.total_energy
+          )} kWh available at ${safePrice(data.reserve_price)}`,
         };
       }
       case "BidPlaced": {
@@ -76,9 +128,9 @@ export const LiveEventsPanel: React.FC<LiveEventsPanelProps> = ({
           bgColor: "bg-green-50 dark:bg-green-900/20",
           title: "Bid Placed",
           description: `Auction #${data.auction_id}: Aggregator ${data.aggregator_id} → BESS ${data.bess_id}`,
-          details: `Bid: ${data.bid_price.toFixed(
-            1
-          )}¢/kWh for ${data.energy_amount.toFixed(1)} kWh`,
+          details: `Bid: ${safePrice(data.bid_price)} for ${safeToFixed(
+            data.energy_amount
+          )} kWh`,
         };
       }
       case "BidAccepted": {
@@ -88,10 +140,10 @@ export const LiveEventsPanel: React.FC<LiveEventsPanelProps> = ({
           color: "text-emerald-600",
           bgColor: "bg-emerald-50 dark:bg-emerald-900/20",
           title: "Bid Accepted",
-          description: `Auction #${data.auction_id}: Aggregator ${data.aggregator_id} → BESS ${data.bess_id}`,
-          details: `Trade completed: ${data.energy_amount.toFixed(
-            1
-          )} kWh at ${data.final_price.toFixed(1)}¢/kWh`,
+          description: `Auction #${data.auction_id}: Aggregator ${data.aggregator_id} → BESS ${data.bess_node_id}`,
+          details: `Trade completed: ${safeToFixed(
+            data.energy_amount
+          )} kWh at ${safePrice(data.price)}`,
         };
       }
       case "BidRejected": {
@@ -112,21 +164,47 @@ export const LiveEventsPanel: React.FC<LiveEventsPanelProps> = ({
           color: "text-blue-600",
           bgColor: "bg-blue-50 dark:bg-blue-900/20",
           title: "Query Sent",
-          description: `Aggregator ${data.aggregator_id} → BESS ${data.bess_id}`,
+          description: `Aggregator ${data.aggregator_id} → BESS-${data.bess_node_id}`,
           details: `Requesting energy availability`,
         };
       }
       case "QueryResponse": {
         const data = event.data as QueryResponseEvent;
+        const totalCapacity = data.capacity_kwh;
+        const currentEnergy = data.energy_available;
+        const reserveEnergy = totalCapacity * 0.1; // Keep 10% reserve
+        const availableForSale = Math.max(0, currentEnergy - reserveEnergy);
+        const availablePercentage =
+          totalCapacity > 0 ? (availableForSale / totalCapacity) * 100 : 0;
+
         return {
           icon: "📊",
           color: "text-green-600",
           bgColor: "bg-green-50 dark:bg-green-900/20",
           title: "Query Response",
-          description: `BESS Node ${data.bess_id}`,
-          details: `${data.energy_available.toFixed(
+          description: `BESS Node ${data.bess_node_id}`,
+          details: `${safeToFixed(
+            availableForSale
+          )} kWh available for sale (${safeToFixed(
+            availablePercentage,
             1
-          )} kWh available (${data.percentage_for_sale.toFixed(0)}% for sale)`,
+          )}% of capacity, ${safeToFixed(
+            reserveEnergy,
+            1
+          )} kWh reserved) at ${safePrice(data.reserve_price)}`,
+        };
+      }
+      case "AuctionCompleted": {
+        const data = event.data as AuctionCompletedEvent;
+        return {
+          icon: "🏆",
+          color: "text-purple-600",
+          bgColor: "bg-purple-50 dark:bg-purple-900/20",
+          title: "Auction Completed",
+          description: `${data.winner} → BESS-${data.seller}`,
+          details: `${safeToFixed(data.energy_amount)} kWh at ${safePrice(
+            data.final_price
+          )} (${(data.auction_duration_ms / 1000).toFixed(1)}s)`,
         };
       }
       case "EnergyDepleted": {
@@ -137,9 +215,9 @@ export const LiveEventsPanel: React.FC<LiveEventsPanelProps> = ({
           bgColor: "bg-red-50 dark:bg-red-900/20",
           title: "Energy Depleted",
           description: `BESS Node ${data.bess_id}`,
-          details: `Energy depleted! ${data.final_energy.toFixed(
-            1
-          )} kWh remaining (${data.energy_percentage.toFixed(1)}%)`,
+          details: `Energy depleted! ${safeToFixed(
+            data.final_energy
+          )} kWh remaining (${safeToFixed(data.energy_percentage)}%)`,
         };
       }
       case "EnergyRecharged": {
@@ -150,9 +228,9 @@ export const LiveEventsPanel: React.FC<LiveEventsPanelProps> = ({
           bgColor: "bg-green-50 dark:bg-green-900/20",
           title: "Energy Recharged",
           description: `BESS Node ${data.bess_id}`,
-          details: `Recharged to ${data.new_total.toFixed(
-            1
-          )} kWh (${data.energy_percentage.toFixed(1)}%)`,
+          details: `Recharged to ${safeToFixed(
+            data.new_total
+          )} kWh (${safeToFixed(data.energy_percentage)}%)`,
         };
       }
       case "SystemMetrics": {
@@ -164,8 +242,8 @@ export const LiveEventsPanel: React.FC<LiveEventsPanelProps> = ({
           title: "System Update",
           description: `${data.total_auctions} auctions, ${
             data.total_bids
-          } bids, ${data.avg_price_improvement_percent.toFixed(
-            1
+          } bids, ${safeToFixed(
+            data.avg_price_improvement_percent
           )}% avg improvement`,
         };
       }
@@ -185,8 +263,8 @@ export const LiveEventsPanel: React.FC<LiveEventsPanelProps> = ({
           description: `BESS Node ${data.device_id}: ${
             data.is_online ? "Online" : "Offline"
           }`,
-          details: `${data.energy_available.toFixed(
-            1
+          details: `${safeToFixed(
+            data.energy_available
           )} kWh available, Battery Health: ${healthStatus}`,
         };
       }
@@ -198,9 +276,153 @@ export const LiveEventsPanel: React.FC<LiveEventsPanelProps> = ({
           bgColor: "bg-indigo-50 dark:bg-indigo-900/20",
           title: "Aggregator Update",
           description: `Aggregator ${data.device_id}: ${data.strategy} strategy`,
-          details: `${data.success_rate.toFixed(1)}% success rate, ${
+          details: `${safeToFixed(data.success_rate)}% success rate, ${
             data.total_bids
-          } total bids, Avg: ${data.average_bid_price.toFixed(1)}¢/kWh`,
+          } total bids, Avg: ${safePrice(data.average_bid_price)}`,
+        };
+      }
+      case "BESSNodeDiscovered": {
+        const data = event.data as BESSNodeDiscoveredEvent;
+        return {
+          icon: "🔍",
+          color: "text-green-600",
+          bgColor: "bg-green-50 dark:bg-green-900/20",
+          title: "BESS Node Discovered",
+          description: `BESS-${data.node_id} discovered via multicast`,
+          details: `${safeToFixed(
+            data.energy_level
+          )} kWh available at ${safePrice(data.reserve_price)} from ${
+            data.discovery_address
+          }`,
+        };
+      }
+      case "AggregatorDiscovered": {
+        const data = event.data as AggregatorDiscoveredEvent;
+        return {
+          icon: "🔍",
+          color: "text-blue-600",
+          bgColor: "bg-blue-50 dark:bg-blue-900/20",
+          title: "Aggregator Discovered",
+          description: `AGG-${data.aggregator_id} discovered via multicast`,
+          details: `${data.strategy} strategy, max bid ${safePrice(
+            data.max_bid_price
+          )} from ${data.discovery_address}`,
+        };
+      }
+      case "HeartbeatReceived": {
+        const data = event.data as HeartbeatReceivedEvent;
+        return {
+          icon: "💓",
+          color: "text-purple-600",
+          bgColor: "bg-purple-50 dark:bg-purple-900/20",
+          title: "Heartbeat Received",
+          description: `${data.node_type} ${data.node_id} heartbeat`,
+          details: `From ${data.heartbeat_address} at ${new Date(
+            data.timestamp * 1000
+          ).toLocaleTimeString()}`,
+        };
+      }
+      case "BESSNodeRegistered": {
+        const data = event.data as BESSNodeRegisteredEvent;
+        return {
+          icon: "📝",
+          color: "text-green-600",
+          bgColor: "bg-green-50 dark:bg-green-900/20",
+          title: "BESS Node Registered",
+          description: `BESS-${data.node_id} registered with gateway`,
+          details: `${safeToFixed(
+            data.energy_level
+          )} kWh available at ${safePrice(data.reserve_price)}`,
+        };
+      }
+      case "AggregatorRegistered": {
+        const data = event.data as AggregatorRegisteredEvent;
+        return {
+          icon: "📝",
+          color: "text-blue-600",
+          bgColor: "bg-blue-50 dark:bg-blue-900/20",
+          title: "Aggregator Registered",
+          description: `AGG-${data.aggregator_id} registered with gateway`,
+          details: `${data.strategy} strategy, max bid ${safePrice(
+            data.max_bid_price
+          )}`,
+        };
+      }
+      case "DirectQuerySent": {
+        const data = event.data as DirectQuerySentEvent;
+        return {
+          icon: "🔍",
+          color: "text-purple-600",
+          bgColor: "bg-purple-50 dark:bg-purple-900/20",
+          title: "Direct Query Sent",
+          description: `AGG-${data.aggregator_id} → BESS-${data.bess_node_id}`,
+          details: `Query type: ${data.query_type}`,
+        };
+      }
+      case "DirectQueryResponse": {
+        const data = event.data as DirectQueryResponseEvent;
+        return {
+          icon: "📡",
+          color: "text-green-600",
+          bgColor: "bg-green-50 dark:bg-green-900/20",
+          title: "Direct Query Response",
+          description: `BESS-${data.bess_node_id} → AGG-${data.aggregator_id}`,
+          details: `${safeToFixed(
+            data.energy_available
+          )} kWh available at ${safePrice(data.reserve_price)} (${
+            data.response_time_ms
+          }ms)`,
+        };
+      }
+      case "BESSNodeDiscovered": {
+        const data = event.data as BESSNodeDiscoveredEvent;
+        return {
+          icon: "🔍",
+          color: "text-blue-600",
+          bgColor: "bg-blue-50 dark:bg-blue-900/20",
+          title: "BESS Node Discovered",
+          description: `BESS-${data.node_id} discovered via multicast`,
+          details: `${safeToFixed(
+            data.energy_level
+          )} kWh available at ${safePrice(data.reserve_price)} from ${
+            data.discovery_address
+          }`,
+        };
+      }
+      case "AggregatorDiscovered": {
+        const data = event.data as AggregatorDiscoveredEvent;
+        return {
+          icon: "⚡",
+          color: "text-orange-600",
+          bgColor: "bg-orange-50 dark:bg-orange-900/20",
+          title: "Aggregator Discovered",
+          description: `${data.aggregator_id} discovered via multicast`,
+          details: `Strategy: ${data.strategy}, Max bid: ${safePrice(
+            data.max_bid_price
+          )}`,
+        };
+      }
+      case "HeartbeatReceived": {
+        const data = event.data as HeartbeatReceivedEvent;
+        return {
+          icon: "💓",
+          color: "text-green-600",
+          bgColor: "bg-green-50 dark:bg-green-900/20",
+          title: "Heartbeat Received",
+          description: `${data.node_type} ${data.node_id} is alive`,
+          details: `Last seen: ${new Date(
+            data.timestamp * 1000
+          ).toLocaleTimeString()}`,
+        };
+      }
+      case "INITIAL_DATA": {
+        return {
+          icon: "🔄",
+          color: "text-blue-600",
+          bgColor: "bg-blue-50 dark:bg-blue-900/20",
+          title: "System Initialized",
+          description: "Dashboard data refreshed",
+          details: "All system components loaded successfully",
         };
       }
       default:
@@ -324,6 +546,79 @@ export const LiveEventsPanel: React.FC<LiveEventsPanelProps> = ({
               <option value="SystemMetrics">
                 System Metrics (
                 {events.filter((e) => e.type === "SystemMetrics").length})
+              </option>
+              <option value="BESSNodeDiscovered">
+                BESS Discovered (
+                {events.filter((e) => e.type === "BESSNodeDiscovered").length})
+              </option>
+              <option value="AggregatorDiscovered">
+                Aggregator Discovered (
+                {events.filter((e) => e.type === "AggregatorDiscovered").length}
+                )
+              </option>
+              <option value="HeartbeatReceived">
+                Heartbeats (
+                {events.filter((e) => e.type === "HeartbeatReceived").length})
+              </option>
+              <option value="BESSNodeRegistered">
+                BESS Registered (
+                {events.filter((e) => e.type === "BESSNodeRegistered").length})
+              </option>
+              <option value="AggregatorRegistered">
+                Aggregator Registered (
+                {events.filter((e) => e.type === "AggregatorRegistered").length}
+                )
+              </option>
+              <option value="REGISTRATIONS">
+                All Registrations (
+                {
+                  events.filter(
+                    (e) =>
+                      e.type === "BESSNodeRegistered" ||
+                      e.type === "AggregatorRegistered"
+                  ).length
+                }
+                )
+              </option>
+              <option value="MULTICAST">
+                Multicast Events (
+                {
+                  events.filter(
+                    (e) =>
+                      e.type === "BESSNodeDiscovered" ||
+                      e.type === "AggregatorDiscovered" ||
+                      e.type === "HeartbeatReceived"
+                  ).length
+                }
+                )
+              </option>
+              <option value="QUERIES">
+                Query Events (
+                {
+                  events.filter(
+                    (e) => e.type === "QuerySent" || e.type === "QueryResponse"
+                  ).length
+                }
+                )
+              </option>
+              <option value="DirectQuerySent">
+                Direct Query Sent (
+                {events.filter((e) => e.type === "DirectQuerySent").length})
+              </option>
+              <option value="DirectQueryResponse">
+                Direct Query Response (
+                {events.filter((e) => e.type === "DirectQueryResponse").length})
+              </option>
+              <option value="DIRECT_QUERIES">
+                All Direct Queries (
+                {
+                  events.filter(
+                    (e) =>
+                      e.type === "DirectQuerySent" ||
+                      e.type === "DirectQueryResponse"
+                  ).length
+                }
+                )
               </option>
             </select>
           </div>

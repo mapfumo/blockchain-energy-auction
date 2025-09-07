@@ -154,7 +154,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Start services
     let state_clone = app_state.clone();
     tokio::spawn(async move {
-        start_multicast_discovery(state_clone, multicast_group, multicast_port).await;
+        register_with_gateway(state_clone).await;
     });
 
     let state_clone = app_state.clone();
@@ -272,49 +272,44 @@ async fn handle_bid_rejected(
     Ok(Json(response))
 }
 
-async fn start_multicast_discovery(
-    state: Arc<AppState>,
-    multicast_group: String,
-    multicast_port: u16,
-) {
-    let socket = match UdpSocket::bind("0.0.0.0:0").await {
-        Ok(socket) => socket,
-        Err(e) => {
-            error!("Failed to create UDP socket: {}", e);
-            return;
-        }
-    };
-
-    info!("Started multicast discovery on {}:{}", multicast_group, multicast_port);
-
-    let mut interval = interval(Duration::from_secs(30));
+async fn register_with_gateway(state: Arc<AppState>) {
+    // Wait a bit for gateway to be ready
+    sleep(Duration::from_secs(5)).await;
+    
+    let client = reqwest::Client::new();
+    let url = format!("http://{}:{}/api/register/bess", state.gateway_host, state.gateway_port);
+    
     loop {
-        interval.tick().await;
-
         let bess_node = state.bess_node.read().await;
-        let discovery_msg = DiscoveryMessage {
-            r#type: "BESS_DISCOVERY".to_string(),
-            node_id: bess_node.node_id.clone(),
-            node_type: bess_node.node_type.clone(),
-            capacity_kwh: bess_node.capacity_kwh,
-            energy_level: bess_node.energy_level,
-            reserve_price: bess_node.reserve_price,
-            timestamp: current_timestamp(),
-        };
-
-        let message = match serde_json::to_vec(&discovery_msg) {
-            Ok(msg) => msg,
-            Err(e) => {
-                error!("Failed to serialize discovery message: {}", e);
-                continue;
+        
+        // Create registration payload matching gateway's BESSNode struct
+        let registration_data = serde_json::json!({
+            "node_id": bess_node.node_id,
+            "energy_level": bess_node.energy_level,
+            "capacity_kwh": bess_node.capacity_kwh,
+            "reserve_price": bess_node.reserve_price,
+            "is_online": bess_node.is_online,
+            "last_seen": current_timestamp()
+        });
+        
+        info!("Registering BESS node {} with gateway at {}", bess_node.node_id, url);
+        
+        match client.post(&url).json(&registration_data).send().await {
+            Ok(response) => {
+                if response.status().is_success() {
+                    info!("Successfully registered BESS node {} with gateway", bess_node.node_id);
+                    break; // Registration successful, exit loop
+                } else {
+                    warn!("Gateway registration failed with status: {}", response.status());
+                }
             }
-        };
-
-        if let Err(e) = socket.send_to(&message, format!("{}:{}", multicast_group, multicast_port)).await {
-            error!("Failed to send discovery message: {}", e);
-        } else {
-            info!("Sent discovery message: {} kWh available", bess_node.energy_level);
+            Err(e) => {
+                warn!("Failed to register with gateway: {}", e);
+            }
         }
+        
+        // Wait before retrying
+        sleep(Duration::from_secs(10)).await;
     }
 }
 

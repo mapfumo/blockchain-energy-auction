@@ -18,6 +18,7 @@ energy-trading-rust/bess_node/tests/integration_tests/target
 energy-trading-rust/bess_node/tests/integration_tests/Cargo.lock
 energy-trading-rust/bess_node/tests/integration_tests/integration_tests/target
 energy-trading-rust/bess_node/tests/integration_tests/integration_tests/Cargo.lock
+energy-trading-rust/gateway.log
 energy_trading/target
 energy_trading/Cargo.lock
 energy_trading/tests/target
@@ -32,4 +33,12 @@ energy_trading/node_modules
 energy_trading/test-ledger
 energy_trading/.yarn
 energy_trading/yarn.lock
-
+test-ledger
+simple-gateway/target
+simple-gateway/Cargo.lock
+simple-gateway/tests/target
+simple-gateway/tests/Cargo.lock
+simple-gateway/tests/integration_tests/target
+simple-gateway/tests/integration_tests/Cargo.lock
+simple-gateway/tests/integration_tests/integration_tests/target
+simple-gateway/tests/integration_tests/integration_tests/Cargo.lock
