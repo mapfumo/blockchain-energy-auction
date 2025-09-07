@@ -14,6 +14,7 @@ Demonstrate that competitive bidding among multiple energy aggregators for D-BES
 - **Smart Rejection Logic**: Intelligent bid evaluation with capacity and safety constraints
 - **Real-time Energy Events**: Live monitoring of energy depletion and recharge cycles
 - **High Contrast UI**: Colorful auction details (blue/green/purple/orange) for excellent readability
+- **PostgreSQL Database**: Real data persistence with automatic migrations and graceful fallback
 
 ## 📚 Documentation
 
@@ -21,6 +22,7 @@ Detailed technical documentation is available in the [`docs/`](./docs/) folder:
 
 - **[Rejection Logic](./docs/REJECTION_LOGIC.md)** - Intelligent bid evaluation system
 - **[Simulation Timing](./docs/SIMULATION_TIMING.md)** - Enhanced timing and delay systems
+- **[Database Implementation](./docs/DATABASE_IMPLEMENTATION.md)** - PostgreSQL integration and persistence
 - **[Documentation Index](./docs/README.md)** - Complete documentation overview
 
 ## 🏗️ Architecture
@@ -31,7 +33,7 @@ Detailed technical documentation is available in the [`docs/`](./docs/) folder:
 - **BESS Nodes**: Battery energy storage systems that evaluate bids and manage energy sales
 - **Aggregator Nodes**: Energy buyers with intelligent bidding strategies
 - **WebSocket Gateway**: Real-time monitoring and event broadcasting
-- **Blockchain Integration**: Solana-based settlement and reputation tracking
+- **Blockchain Integration**: Solana-based settlement, USDC/SOL payments, and reputation tracking
 
 ### Technology Stack
 
@@ -57,6 +59,73 @@ Detailed technical documentation is available in the [`docs/`](./docs/) folder:
 - PostgreSQL + TimescaleDB
 - Redis (caching)
 - GitHub Actions (CI/CD)
+
+**Blockchain (Solana)**
+
+- Anchor Framework (Rust smart contracts)
+- Solana SDK (Rust client integration)
+- USDC/SOL Token Support
+- Wallet Integration (Phantom, Solflare)
+- Multi-network Deployment (localnet/devnet/mainnet)
+
+## 🔗 Blockchain Integration
+
+### Smart Contract Architecture
+
+**Settlement Contract**
+
+```rust
+#[program]
+pub mod energy_trading {
+    pub fn settle_auction(
+        ctx: Context<SettleAuction>,
+        auction_id: u64,
+        energy_amount: u64,
+        final_price: u64,
+    ) -> Result<()> {
+        // Transfer USDC from aggregator to BESS owner
+        // Update reputation scores
+        // Emit settlement event
+    }
+}
+```
+
+**Key Features**
+
+- **Immutable Settlement**: All energy trades recorded on-chain
+- **Automatic Payments**: USDC transferred directly to BESS owner wallets
+- **Reputation System**: On-chain performance tracking for aggregators
+- **Dispute Resolution**: Smart contract hooks for automated conflict resolution
+- **Multi-token Support**: USDC (primary) and SOL (secondary) payments
+
+### Integration Flow
+
+1. **Auction Completion** → Generate settlement transaction
+2. **Wallet Connection** → Connect aggregator and BESS owner wallets
+3. **Smart Contract Call** → Submit settlement to Solana blockchain
+4. **Payment Processing** → USDC automatically transferred
+5. **Database Update** → Store blockchain transaction hash
+6. **Event Monitoring** → Listen for on-chain settlement events
+
+### Benefits
+
+**For BESS Owners**
+
+- Immutable transaction records
+- Direct USDC payments to wallet
+- Transparent pricing history
+
+**For Aggregators**
+
+- On-chain reputation building
+- Trustless trading environment
+- Competitive advantage through performance
+
+**For System**
+
+- Decentralized architecture
+- Complete audit trail
+- High-throughput settlement
 
 ## 🚀 Current Status
 
@@ -136,9 +205,15 @@ Detailed technical documentation is available in the [`docs/`](./docs/) folder:
 
 **Blockchain Integration**
 
-- [ ] Solana smart contracts for settlement
-- [ ] USDC/SOL payment processing
-- [ ] Reputation tracking and dispute resolution
+- [ ] **Solana Smart Contracts**: Anchor framework for Rust-based programs
+- [ ] **Payment Processing**: USDC and SOL token support with wallet integration
+- [ ] **Auction Settlement**: Immutable transaction records for all energy trades
+- [ ] **Reputation Tracking**: On-chain performance scoring for aggregators
+- [ ] **Dispute Resolution**: Smart contract hooks for automated conflict resolution
+- [ ] **Multi-network Support**: localnet, devnet, mainnet deployment
+- [ ] **Wallet Integration**: Phantom, Solflare, and other Solana wallet support
+- [ ] **Transaction Broadcasting**: Real-time settlement submission to blockchain
+- [ ] **Event Monitoring**: On-chain event listening and database updates
 
 **Performance Optimization**
 

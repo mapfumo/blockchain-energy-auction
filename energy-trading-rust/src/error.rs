@@ -44,6 +44,9 @@ pub enum ETPError {
     
     #[error("JSON serialization error: {0}")]
     JsonSerialization(#[from] serde_json::Error),
+    
+    #[error("Database error: {0}")]
+    Database(#[from] sqlx::Error),
 }
 
 pub type Result<T> = std::result::Result<T, ETPError>;

@@ -1,24 +1,211 @@
 version: "3.8"
 
 services:
-  postgres:
-    image: postgres:15-alpine
-    container_name: energy-trading-db
-    environment:
-      POSTGRES_DB: energy_trading
-      POSTGRES_USER: energy_user
-      POSTGRES_PASSWORD: energy_password
-      POSTGRES_HOST_AUTH_METHOD: trust
+  # Energy Trading Gateway (Orchestrator)
+  gateway:
+    build:
+      context: ./simple-gateway
+      dockerfile: Dockerfile
+    container_name: energy-gateway
+    networks:
+      - energy_network
     ports:
-      - "5432:5432"
+      - "8080:8080" # WebSocket Gateway
+    environment:
+      - RUST_LOG=info
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./energy-trading-rust/migrations:/docker-entrypoint-initdb.d
+      - ./simple-gateway:/app
+    command: ["cargo", "run", "--bin", "simple-gateway"]
+
+  # Frontend Dashboard
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: energy-frontend
+    networks:
+      - energy_network
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_WS_URL=ws://gateway:8080
+      - NEXT_PUBLIC_API_URL=http://gateway:3001
+    depends_on:
+      - gateway
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: ["npm", "run", "dev"]
+
+  # PostgreSQL Database (Optional - not used in simple gateway)
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: energy-postgres
+  #   networks:
+  #     - energy_network
+  #   environment:
+  #     - POSTGRES_DB=energy_trading
+  #     - POSTGRES_USER=energy_user
+  #     - POSTGRES_PASSWORD=energy_pass
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #     - ./energy-trading-rust/migrations:/docker-entrypoint-initdb.d
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U energy_user -d energy_trading"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+  # BESS Node 001 (15kWh Residential Battery)
+  bess-001:
+    build:
+      context: ./containers/bess-node
+      dockerfile: Dockerfile
+    container_name: bess-001
+    networks:
+      energy_network:
+        ipv4_address: 172.20.0.10
+    environment:
+      - NODE_ID=001
+      - NODE_TYPE=BESS
+      - CAPACITY_KWH=15
+      - INITIAL_ENERGY=12.5
+      - GATEWAY_HOST=gateway
+      - GATEWAY_PORT=8080
+      - MULTICAST_GROUP=224.0.0.1
+      - MULTICAST_PORT=8888
+    depends_on:
+      - gateway
+    restart: unless-stopped
+
+  # BESS Node 002 (20kWh Commercial Battery)
+  bess-002:
+    build:
+      context: ./containers/bess-node
+      dockerfile: Dockerfile
+    container_name: bess-002
+    networks:
+      energy_network:
+        ipv4_address: 172.20.0.11
+    environment:
+      - NODE_ID=002
+      - NODE_TYPE=BESS
+      - CAPACITY_KWH=20
+      - INITIAL_ENERGY=18.0
+      - GATEWAY_HOST=gateway
+      - GATEWAY_PORT=8080
+      - MULTICAST_GROUP=224.0.0.1
+      - MULTICAST_PORT=8888
+    depends_on:
+      - gateway
+    restart: unless-stopped
+
+  # BESS Node 003 (10kWh Small Residential)
+  bess-003:
+    build:
+      context: ./containers/bess-node
+      dockerfile: Dockerfile
+    container_name: bess-003
+    networks:
+      energy_network:
+        ipv4_address: 172.20.0.12
+    environment:
+      - NODE_ID=003
+      - NODE_TYPE=BESS
+      - CAPACITY_KWH=10
+      - INITIAL_ENERGY=8.5
+      - GATEWAY_HOST=gateway
+      - GATEWAY_PORT=8080
+      - MULTICAST_GROUP=224.0.0.1
+      - MULTICAST_PORT=8888
+    depends_on:
+      - gateway
+    restart: unless-stopped
+
+  # Aggregator 001 (Energy Buyer)
+  aggregator-001:
+    build:
+      context: ./containers/aggregator
+      dockerfile: Dockerfile
+    container_name: aggregator-001
+    networks:
+      energy_network:
+        ipv4_address: 172.20.0.20
+    environment:
+      - AGGREGATOR_ID=001
+      - NODE_TYPE=AGGREGATOR
+      - STRATEGY=CONSERVATIVE
+      - MAX_BID_PRICE=800
+      - GATEWAY_HOST=gateway
+      - GATEWAY_PORT=8080
+      - MULTICAST_GROUP=224.0.0.1
+      - MULTICAST_PORT=8888
+    depends_on:
+      - gateway
+    restart: unless-stopped
+
+  # Aggregator 002 (Energy Buyer)
+  aggregator-002:
+    build:
+      context: ./containers/aggregator
+      dockerfile: Dockerfile
+    container_name: aggregator-002
+    networks:
+      energy_network:
+        ipv4_address: 172.20.0.21
+    environment:
+      - AGGREGATOR_ID=002
+      - NODE_TYPE=AGGREGATOR
+      - STRATEGY=AGGRESSIVE
+      - MAX_BID_PRICE=1200
+      - GATEWAY_HOST=gateway
+      - GATEWAY_PORT=8080
+      - MULTICAST_GROUP=224.0.0.1
+      - MULTICAST_PORT=8888
+    depends_on:
+      - gateway
+    restart: unless-stopped
+
+  # Blockchain Node (Solana Local Validator)
+  solana-validator:
+    image: solanalabs/solana:v1.17.0
+    container_name: solana-validator
+    networks:
+      - energy_network
+    ports:
+      - "8899:8899" # RPC
+      - "8900:8900" # Gossip
+    command:
+      [
+        "solana-test-validator",
+        "--reset",
+        "--quiet",
+        "--rpc-port",
+        "8899",
+        "--rpc-bind-address",
+        "0.0.0.0",
+        "--enable-rpc-transaction-history",
+        "--allow-private-addr",
+      ]
+    volumes:
+      - solana_data:/root/.local/share/solana
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U energy_user -d energy_trading"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      test:
+        ["CMD", "solana", "cluster-version", "--url", "http://localhost:8899"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  energy_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1
 
 volumes:
   postgres_data:
+  solana_data:

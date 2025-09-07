@@ -222,19 +222,23 @@ impl Repository {
     pub async fn get_system_metrics(&self) -> Result<SystemMetrics> {
         let auction_count: i64 = sqlx::query_scalar!("SELECT COUNT(*) FROM auctions")
             .fetch_one(&self.db.pool)
-            .await?;
+            .await?
+            .unwrap_or(0);
 
         let bid_count: i64 = sqlx::query_scalar!("SELECT COUNT(*) FROM bids")
             .fetch_one(&self.db.pool)
-            .await?;
+            .await?
+            .unwrap_or(0);
 
-        let active_batteries: i32 = sqlx::query_scalar!("SELECT COUNT(*) FROM batteries WHERE status = 'online'")
+        let active_batteries: i64 = sqlx::query_scalar!("SELECT COUNT(*) FROM batteries WHERE status = 'online'")
             .fetch_one(&self.db.pool)
-            .await?;
+            .await?
+            .unwrap_or(0);
 
-        let active_aggregators: i32 = sqlx::query_scalar!("SELECT COUNT(*) FROM aggregators WHERE status = 'online'")
+        let active_aggregators: i64 = sqlx::query_scalar!("SELECT COUNT(*) FROM aggregators WHERE status = 'online'")
             .fetch_one(&self.db.pool)
-            .await?;
+            .await?
+            .unwrap_or(0);
 
         Ok(SystemMetrics {
             total_auctions: auction_count,

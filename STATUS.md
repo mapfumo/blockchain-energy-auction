@@ -62,6 +62,15 @@
 - **Price Validation**: Minimum 8¢/kWh threshold for bid acceptance
 - **Documentation**: Detailed logic documented in `docs/REJECTION_LOGIC.md`
 
+### 8. **PostgreSQL Database Integration**
+
+- **Real Persistence**: Complete migration from mock data to PostgreSQL database
+- **Automatic Migrations**: SQLx handles schema creation and updates automatically
+- **Database Schema**: 4 tables (batteries, aggregators, auctions, bids) with full relationships
+- **Performance Indexes**: Optimized queries with 8 strategic indexes
+- **Data Integrity**: Foreign key constraints and proper data types
+- **Initial Data**: Pre-populated BESS nodes and aggregators for immediate operation
+
 ## 🔧 Technical Implementation
 
 ### Backend (Rust/Tokio)
@@ -75,6 +84,8 @@
 ✅ Metrics Collection (in-memory, economic impact tracking)
 ✅ ETP Query Flow (Query/QueryResponse events with realistic timing)
 ✅ Enhanced Aggregator Metrics (successful bids, energy bought)
+✅ PostgreSQL Database (real persistence, automatic migrations)
+✅ Database Schema (4 tables with relationships and indexes)
 ```
 
 ### Frontend (Next.js/TypeScript)

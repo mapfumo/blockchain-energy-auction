@@ -40,7 +40,7 @@ export const Dashboard: React.FC = () => {
     Array<{ timestamp: string; price: number; energy_amount: number }>
   >([]);
   const [activeTab, setActiveTab] = useState<
-    "auctions" | "bess" | "analytics" | "metrics"
+    "auctions" | "bess" | "analytics" | "metrics" | "blockchain"
   >("auctions");
   const [messageCount, setMessageCount] = useState(0);
   const [liveEvents, setLiveEvents] = useState<SystemEvent[]>([]);
@@ -357,6 +357,7 @@ export const Dashboard: React.FC = () => {
               { id: "bess", label: "🔋BESS Nodes", icon: "🔋" },
               { id: "analytics", label: "📊Price Analytics", icon: "📊" },
               { id: "metrics", label: "📈System Metrics", icon: "📈" },
+              { id: "blockchain", label: "⛓️Blockchain", icon: "⛓️" },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -515,6 +516,44 @@ export const Dashboard: React.FC = () => {
               bessNodes={bessNodes}
               aggregators={aggregators}
             />
+          )}
+          {activeTab === "blockchain" && (
+            <div className="space-y-6">
+              <div className="card">
+                <div className="card-header">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    ⛓️ Blockchain Settlement
+                  </h3>
+                </div>
+                <div className="card-content">
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <span className="text-2xl">⛓️</span>
+                    </div>
+                    <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                      Blockchain Integration Coming Soon
+                    </h4>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">
+                      Essential settlement data will be stored on Solana
+                      blockchain
+                    </p>
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-left max-w-md mx-auto">
+                      <h5 className="font-medium text-gray-900 dark:text-white mb-2">
+                        On-Chain Data:
+                      </h5>
+                      <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                        <li>
+                          • Auction settlements (final price, energy amount)
+                        </li>
+                        <li>• USDC/SOL payment records</li>
+                        <li>• Aggregator reputation scores</li>
+                        <li>• Dispute resolution records</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </main>

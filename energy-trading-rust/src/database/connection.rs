@@ -2,6 +2,7 @@ use sqlx::{PgPool, PgConnection, Connection};
 use std::env;
 use anyhow::Result;
 
+#[derive(Clone)]
 pub struct DatabaseConnection {
     pub pool: PgPool,
 }

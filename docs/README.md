@@ -9,11 +9,13 @@ This directory contains detailed technical documentation for the Energy Trading 
 - **[REJECTION_LOGIC.md](./REJECTION_LOGIC.md)** - Intelligent bid rejection system with hierarchical evaluation
 - **[SIMULATION_TIMING.md](./SIMULATION_TIMING.md)** - Enhanced simulation timing and delay systems
 - **[UI_IMPROVEMENTS.md](./UI_IMPROVEMENTS.md)** - Frontend UI enhancements and accessibility improvements
+- **[DATABASE_IMPLEMENTATION.md](./DATABASE_IMPLEMENTATION.md)** - PostgreSQL database integration and persistence
+- **[CORS_WEBSOCKET_FIX.md](./CORS_WEBSOCKET_FIX.md)** - CORS WebSocket connection fix and solution
 
 ### Architecture Documentation
 
-- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture and component relationships (planned)
-- **[ETP_PROTOCOL.md](./ETP_PROTOCOL.md)** - Energy Trading Protocol specification (planned)
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture with comprehensive blockchain integration
+- **[ETP_PROTOCOL.md](./ETP_PROTOCOL.md)** - Energy Trading Protocol specification with auction numbering and event flow
 - **[API_REFERENCE.md](./API_REFERENCE.md)** - WebSocket and REST API documentation (planned)
 
 ### Implementation Guides
@@ -55,8 +57,10 @@ When adding new features or making changes:
 - ✅ **REJECTION_LOGIC.md** - Complete and current
 - ✅ **SIMULATION_TIMING.md** - Complete and current
 - ✅ **UI_IMPROVEMENTS.md** - Complete and current
-- 🔄 **ARCHITECTURE.md** - Planned
-- 🔄 **ETP_PROTOCOL.md** - Planned
+- ✅ **DATABASE_IMPLEMENTATION.md** - Complete and current
+- ✅ **CORS_WEBSOCKET_FIX.md** - Complete and current
+- ✅ **ARCHITECTURE.md** - Complete and current
+- ✅ **ETP_PROTOCOL.md** - Complete and current
 - 🔄 **API_REFERENCE.md** - Planned
 - 🔄 **DEPLOYMENT.md** - Planned
 - 🔄 **TESTING.md** - Planned

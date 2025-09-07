@@ -1,7 +1,118 @@
 use energy_trading::network::websocket_gateway::{WebSocketGateway, SystemEvent};
 use energy_trading::bess_node::EnergyStatus;
+use energy_trading::database::{DatabaseConnection, Repository, NewBattery, NewAggregator};
 use std::time::{Duration, Instant};
 use tokio::time::sleep;
+use sqlx::types::BigDecimal;
+
+async fn initialize_database_data(repository: &Repository) -> Result<(), Box<dyn std::error::Error>> {
+    // Create BESS nodes (batteries)
+    let bess_nodes = vec![
+        NewBattery {
+            device_id: 101,
+            owner_pubkey: "BESS101_OWNER_PUBKEY".to_string(),
+            energy_total: BigDecimal::from(15i64), // 15 kWh capacity
+            percentage_for_sale: BigDecimal::from(70i64), // 70% for sale
+            reserve_price: BigDecimal::from(8i64), // 8 c/kWh
+            health_status: 0, // Good health
+            voltage: BigDecimal::from(48i64), // 48V
+            discharge_rate: BigDecimal::from(5i64), // 5 kW
+            status: "online".to_string(),
+        },
+        NewBattery {
+            device_id: 102,
+            owner_pubkey: "BESS102_OWNER_PUBKEY".to_string(),
+            energy_total: BigDecimal::from(15i64),
+            percentage_for_sale: BigDecimal::from(80i64),
+            reserve_price: BigDecimal::from(7i64),
+            health_status: 1,
+            voltage: BigDecimal::from(24i64),
+            discharge_rate: BigDecimal::from(4i64),
+            status: "online".to_string(),
+        },
+        NewBattery {
+            device_id: 103,
+            owner_pubkey: "BESS103_OWNER_PUBKEY".to_string(),
+            energy_total: BigDecimal::from(15i64),
+            percentage_for_sale: BigDecimal::from(90i64),
+            reserve_price: BigDecimal::from(9i64),
+            health_status: 2,
+            voltage: BigDecimal::from(48i64),
+            discharge_rate: BigDecimal::from(6i64),
+            status: "online".to_string(),
+        },
+    ];
+
+    // Create aggregators
+    let aggregators = vec![
+        NewAggregator {
+            device_id: 201,
+            owner_pubkey: "AGG201_OWNER_PUBKEY".to_string(),
+            max_bid_price: BigDecimal::from(30i64), // 30 c/kWh max
+            energy_requirements: BigDecimal::from(50i64), // 50 kWh requirements
+            reputation_score: 100,
+            status: "online".to_string(),
+        },
+        NewAggregator {
+            device_id: 202,
+            owner_pubkey: "AGG202_OWNER_PUBKEY".to_string(),
+            max_bid_price: BigDecimal::from(25i64),
+            energy_requirements: BigDecimal::from(40i64),
+            reputation_score: 95,
+            status: "online".to_string(),
+        },
+        NewAggregator {
+            device_id: 203,
+            owner_pubkey: "AGG203_OWNER_PUBKEY".to_string(),
+            max_bid_price: BigDecimal::from(28i64),
+            energy_requirements: BigDecimal::from(45i64),
+            reputation_score: 98,
+            status: "online".to_string(),
+        },
+        NewAggregator {
+            device_id: 204,
+            owner_pubkey: "AGG204_OWNER_PUBKEY".to_string(),
+            max_bid_price: BigDecimal::from(32i64),
+            energy_requirements: BigDecimal::from(55i64),
+            reputation_score: 100,
+            status: "online".to_string(),
+        },
+        NewAggregator {
+            device_id: 205,
+            owner_pubkey: "AGG205_OWNER_PUBKEY".to_string(),
+            max_bid_price: BigDecimal::from(26i64),
+            energy_requirements: BigDecimal::from(35i64),
+            reputation_score: 92,
+            status: "online".to_string(),
+        },
+    ];
+
+    // Insert BESS nodes (ignore duplicates)
+    for battery in bess_nodes {
+        if let Err(e) = repository.create_battery(battery).await {
+            if e.to_string().contains("duplicate key") {
+                println!("ℹ️  BESS node already exists, skipping...");
+            } else {
+                return Err(e.into());
+            }
+        }
+    }
+    println!("✅ BESS nodes ready in database");
+
+    // Insert aggregators (ignore duplicates)
+    for aggregator in aggregators {
+        if let Err(e) = repository.create_aggregator(aggregator).await {
+            if e.to_string().contains("duplicate key") {
+                println!("ℹ️  Aggregator already exists, skipping...");
+            } else {
+                return Err(e.into());
+            }
+        }
+    }
+    println!("✅ Aggregators ready in database");
+
+    Ok(())
+}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -9,6 +120,27 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt::init();
 
     println!("Starting Energy Trading WebSocket Gateway...");
+
+    // Try to initialize database (optional)
+    let db_connection = match DatabaseConnection::new().await {
+        Ok(db) => {
+            println!("✅ Database connected successfully");
+            
+            // Initialize database with required data
+            let repository = Repository::new(db.clone());
+            if let Err(e) = initialize_database_data(&repository).await {
+                println!("⚠️  Failed to initialize database data: {}. Running in mock mode.", e);
+                None
+            } else {
+                println!("💾 Database initialized with BESS nodes and aggregators");
+                Some(db)
+            }
+        }
+        Err(e) => {
+            println!("⚠️  Database connection failed: {}. Running in mock mode.", e);
+            None
+        }
+    };
 
     // Create and start the WebSocket gateway
     let gateway = WebSocketGateway::new(8080).await?;
@@ -60,6 +192,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             };
             event_gateway.broadcast_event(auction_event).await.unwrap();
             println!("🎯 Auction #{} started: {:.1} kWh at {:.1}¢/kWh", auction_id, total_energy, reserve_price);
+
+            // Persist auction to database if available
+            if let Some(db) = &db_connection {
+                let repository = Repository::new(db.clone());
+                use energy_trading::database::NewAuction;
+                use sqlx::types::BigDecimal;
+                
+                let new_auction = NewAuction {
+                    battery_id: 101, // Default battery_id for now
+                    energy_amount: BigDecimal::from(total_energy as i64),
+                    reserve_price: BigDecimal::from(reserve_price as i64),
+                    status: "active".to_string(),
+                };
+                
+                if let Err(e) = repository.create_auction(new_auction).await {
+                    println!("⚠️  Failed to persist auction to database: {}", e);
+                } else {
+                    println!("💾 Auction #{} persisted to database", auction_id);
+                }
+            }
 
             // Step 1: Aggregators query BESS nodes for energy availability (once per auction)
             println!("🔍 Aggregators querying BESS nodes for energy availability...");

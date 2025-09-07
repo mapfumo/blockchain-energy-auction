@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
 use sqlx::FromRow;
-use bigdecimal::BigDecimal;
+use sqlx::types::BigDecimal;
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct Battery {
@@ -15,8 +15,8 @@ pub struct Battery {
     pub voltage: BigDecimal,
     pub discharge_rate: BigDecimal,
     pub status: String,
-    pub last_seen: DateTime<Utc>,
-    pub created_at: DateTime<Utc>,
+    pub last_seen: Option<DateTime<Utc>>,
+    pub created_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
@@ -26,10 +26,10 @@ pub struct Aggregator {
     pub owner_pubkey: String,
     pub max_bid_price: BigDecimal,
     pub energy_requirements: BigDecimal,
-    pub reputation_score: i32,
+    pub reputation_score: Option<i32>,
     pub status: String,
-    pub last_seen: DateTime<Utc>,
-    pub created_at: DateTime<Utc>,
+    pub last_seen: Option<DateTime<Utc>>,
+    pub created_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
@@ -42,9 +42,9 @@ pub struct Auction {
     pub final_price: Option<BigDecimal>,
     pub status: String,
     pub blockchain_tx_hash: Option<String>,
-    pub started_at: DateTime<Utc>,
+    pub started_at: Option<DateTime<Utc>>,
     pub settled_at: Option<DateTime<Utc>>,
-    pub created_at: DateTime<Utc>,
+    pub created_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
@@ -55,8 +55,8 @@ pub struct Bid {
     pub bid_price: BigDecimal,
     pub energy_amount: BigDecimal,
     pub status: String, // "pending", "accepted", "rejected"
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    pub created_at: Option<DateTime<Utc>>,
+    pub updated_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -64,8 +64,8 @@ pub struct SystemMetrics {
     pub total_auctions: i64,
     pub total_bids: i64,
     pub avg_price_improvement_percent: f64,
-    pub active_bess_nodes: i32,
-    pub active_aggregators: i32,
+    pub active_bess_nodes: i64,
+    pub active_aggregators: i64,
 }
 
 // Insert/Update models

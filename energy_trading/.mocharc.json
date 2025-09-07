@@ -1,0 +1,24 @@
+{
+  "timeout": 1000000,
+  "recursive": true,
+  "reporter": "spec",
+  "require": ["ts-node/register"],
+  "extensions": ["ts"],
+  "spec": "tests/**/*.ts",
+  "exclude": "tests/**/*.d.ts",
+  "bail": false,
+  "parallel": false,
+  "retries": 2,
+  "slow": 5000,
+  "grep": ".*",
+  "grepInvert": false,
+  "delay": false,
+  "sort": false,
+  "fullTrace": true,
+  "inlineDiffs": true,
+  "diff": true,
+  "reporterOptions": {
+    "verbose": true,
+    "showDiff": true
+  }
+}

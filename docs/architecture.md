@@ -253,9 +253,191 @@ System Event Generation:
                                    └─────────────────┘
 ```
 
-## 4. Database Schema Design
+## 4. Blockchain Integration Architecture
 
-### 4.1 Why PostgreSQL is Essential
+### 4.1 Solana Smart Contract Design
+
+The Energy Trading System integrates with Solana blockchain for immutable settlement and payment processing:
+
+```rust
+// Anchor Program Structure
+#[program]
+pub mod energy_trading {
+    use super::*;
+
+    // Settle an auction with USDC payment
+    pub fn settle_auction(
+        ctx: Context<SettleAuction>,
+        auction_id: u64,
+        energy_amount: u64,
+        final_price: u64,
+    ) -> Result<()> {
+        // Transfer USDC from aggregator to BESS owner
+        // Update reputation scores
+        // Emit settlement event
+    }
+
+    // Update aggregator reputation
+    pub fn update_reputation(
+        ctx: Context<UpdateReputation>,
+        aggregator_pubkey: Pubkey,
+        performance_score: u8,
+    ) -> Result<()> {
+        // Update on-chain reputation
+    }
+}
+```
+
+### 4.2 Blockchain Integration Flow
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Auction       │    │   Settlement    │    │   Blockchain    │
+│   Completion    │───►│   Transaction   │───►│   Submission    │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         ▼                       ▼                       ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Generate      │    │   Wallet        │    │   USDC Transfer │
+│   Settlement    │    │   Connection    │    │   & Reputation  │
+│   Data          │    │   (Phantom)     │    │   Update        │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         ▼                       ▼                       ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Database      │    │   Frontend      │    │   Event         │
+│   Update        │    │   UI Update     │    │   Monitoring    │
+│   (TX Hash)     │    │   (Status)      │    │   (On-chain)    │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+
+### 4.3 Smart Contract Components
+
+**Settlement Contract**
+
+- **Auction Settlement**: Process completed auctions with USDC payments
+- **Payment Distribution**: Automatic transfer from aggregator to BESS owner
+- **Transaction Recording**: Immutable record of all energy trades
+- **Event Emission**: On-chain events for monitoring and auditing
+
+**Reputation Contract**
+
+- **Performance Tracking**: On-chain aggregator performance scoring
+- **Reputation Updates**: Automatic reputation adjustments based on trading behavior
+- **Trust Metrics**: Public reputation scores for competitive advantage
+- **Dispute Resolution**: Smart contract hooks for automated conflict resolution
+
+### 4.4 Wallet Integration
+
+**Supported Wallets**
+
+- **Phantom**: Primary Solana wallet integration
+- **Solflare**: Secondary wallet option
+- **Backpack**: Additional wallet support
+- **Wallet Adapter**: Universal wallet connection interface
+
+**Wallet Operations**
+
+- **Connection**: Connect aggregator and BESS owner wallets
+- **Transaction Signing**: Sign settlement transactions
+- **Balance Checking**: Verify USDC/SOL balances
+- **Transaction History**: Display payment history
+
+### 4.5 Payment Processing
+
+**USDC Integration**
+
+- **Primary Payment**: USDC as main settlement token
+- **Automatic Transfer**: Direct wallet-to-wallet payments
+- **Amount Calculation**: Energy amount × final price in USDC
+- **Transaction Fees**: Solana network fees for settlement
+
+**SOL Integration**
+
+- **Secondary Payment**: SOL as alternative payment option
+- **Network Fees**: SOL used for transaction fees
+- **Conversion**: Optional USDC/SOL conversion features
+
+### 4.6 Blockchain Data Storage
+
+**Database Integration**
+
+```sql
+-- Updated auctions table with blockchain data
+ALTER TABLE auctions ADD COLUMN blockchain_tx_hash VARCHAR(88);
+ALTER TABLE auctions ADD COLUMN settled_at TIMESTAMP WITH TIME ZONE;
+ALTER TABLE auctions ADD COLUMN usdc_amount DECIMAL(10,2);
+ALTER TABLE auctions ADD COLUMN sol_amount DECIMAL(10,2);
+```
+
+**On-chain Data**
+
+- **Transaction Hashes**: Immutable settlement records
+- **Payment Amounts**: USDC/SOL transfer amounts
+- **Reputation Scores**: Aggregator performance metrics
+- **Event Logs**: Complete audit trail of all transactions
+
+### 4.7 Multi-network Support
+
+**Development Networks**
+
+- **Localnet**: Local Solana cluster for development
+- **Devnet**: Solana devnet for testing
+- **Testnet**: Public testnet for integration testing
+
+**Production Network**
+
+- **Mainnet**: Production Solana mainnet deployment
+- **Network Switching**: Dynamic network configuration
+- **Environment Management**: Separate configs for each network
+
+### 4.8 Event Monitoring
+
+**On-chain Event Listening**
+
+```rust
+// Listen for settlement events
+pub async fn monitor_settlement_events() -> Result<()> {
+    let client = RpcClient::new("https://api.mainnet-beta.solana.com");
+
+    // Subscribe to program events
+    let subscription = client
+        .program_subscribe(&program_id, Some(RpcTransactionLogsFilter::All))
+        .await?;
+
+    // Process settlement events
+    while let Some(event) = subscription.next().await {
+        process_settlement_event(event).await?;
+    }
+}
+```
+
+**Database Updates**
+
+- **Transaction Confirmation**: Update database with confirmed transactions
+- **Payment Status**: Track payment completion status
+- **Reputation Updates**: Sync on-chain reputation with database
+- **Error Handling**: Handle failed transactions and retries
+
+### 4.9 Security Considerations
+
+**Smart Contract Security**
+
+- **Access Control**: Proper authority checks for all functions
+- **Input Validation**: Validate all input parameters
+- **Reentrancy Protection**: Prevent reentrancy attacks
+- **Upgradeability**: Controlled contract upgrades
+
+**Wallet Security**
+
+- **Private Key Management**: Secure key storage and handling
+- **Transaction Validation**: Verify transaction details before signing
+- **Multi-signature Support**: Optional multi-sig for large transactions
+- **Audit Trail**: Complete transaction history and logging
+
+## 5. Database Schema Design
+
+### 5.1 Why PostgreSQL is Essential
 
 PostgreSQL is critical for this project despite our simplified monitoring approach:
 
@@ -279,7 +461,7 @@ PostgreSQL is critical for this project despite our simplified monitoring approa
 - **Competition Metrics**: Long-term analysis of aggregator participation
 - **Performance Analytics**: System performance over time for optimization
 
-### 4.2 Core Entities
+### 5.2 Core Entities
 
 ```sql
 -- Battery Energy Storage Systems
@@ -343,7 +525,7 @@ CREATE TABLE message_log (
 SELECT create_hypertable('message_log', 'timestamp');
 ```
 
-### 4.2 Performance Metrics Tables
+### 5.3 Performance Metrics Tables
 
 ```sql
 -- System Performance Metrics
@@ -373,9 +555,9 @@ CREATE TABLE trading_stats (
 SELECT create_hypertable('trading_stats', 'timestamp');
 ```
 
-## 5. API Design
+## 6. API Design
 
-### 5.1 WebSocket API
+### 6.1 WebSocket API
 
 ```typescript
 // WebSocket Message Types
@@ -405,7 +587,7 @@ enum MessageType {
 }
 ```
 
-### 5.2 REST API Endpoints
+### 6.2 REST API Endpoints
 
 ```rust
 // REST API Routes
@@ -444,9 +626,9 @@ GET    /api/health                 // System health check
 GET    /api/metrics                // Prometheus metrics endpoint
 ```
 
-## 6. Security Architecture
+## 7. Security Architecture
 
-### 6.1 Authentication & Authorization
+### 7.1 Authentication & Authorization
 
 ```rust
 // Multi-layer Security Model
@@ -473,7 +655,7 @@ GET    /api/metrics                // Prometheus metrics endpoint
 └─────────────────────────────────────────┘
 ```
 
-### 6.2 Network Security
+### 7.2 Network Security
 
 ```rust
 // Security Configuration
@@ -489,9 +671,9 @@ pub struct SecurityConfig {
 }
 ```
 
-## 7. Scalability & Performance
+## 8. Scalability & Performance
 
-### 7.1 Horizontal Scaling Strategy
+### 8.1 Horizontal Scaling Strategy
 
 ```
 Load Balancer (HAProxy/Nginx)
@@ -518,7 +700,7 @@ Load Balancer (HAProxy/Nginx)
     └─────────────┘
 ```
 
-### 7.2 Performance Optimization
+### 8.2 Performance Optimization
 
 ```rust
 // Performance Monitoring Points
@@ -543,9 +725,9 @@ pub struct PerformanceMetrics {
 }
 ```
 
-## 8. Deployment Architecture
+## 9. Deployment Architecture
 
-### 8.1 Container Strategy
+### 9.1 Container Strategy
 
 ```dockerfile
 # Multi-stage Rust build for optimal container size
@@ -561,7 +743,7 @@ EXPOSE 8080 9090
 CMD ["energy-trading"]
 ```
 
-### 8.2 Docker Compose Development
+### 9.2 Docker Compose Development
 
 ```yaml
 version: "3.8"
@@ -612,9 +794,9 @@ services:
       - websocket-gateway
 ```
 
-## 9. Real-time Monitoring & Observability
+## 10. Real-time Monitoring & Observability
 
-### 9.1 WebSocket Event Broadcasting
+### 10.1 WebSocket Event Broadcasting
 
 ```rust
 // Real-time event system for competitive pricing demonstration
@@ -677,7 +859,7 @@ impl WebSocketGateway {
 }
 ```
 
-### 9.2 Structured Logging with Focus on Economic Impact
+### 10.2 Structured Logging with Focus on Economic Impact
 
 ```rust
 // Logging focused on demonstrating competitive pricing benefits
@@ -720,7 +902,7 @@ pub async fn process_bid(&self, battery_id: u32, aggregator_id: u32, bid: BidMes
 }
 ```
 
-### 9.3 Simple Metrics Collection
+### 10.3 Simple Metrics Collection
 
 ```rust
 // In-memory metrics for real-time monitoring
@@ -801,9 +983,9 @@ pub struct CompetitionSummary {
 }
 ```
 
-## 10. Test-Driven Development (TDD) Architecture
+## 11. Test-Driven Development (TDD) Architecture
 
-### 10.1 TDD Philosophy for Energy Trading System
+### 11.1 TDD Philosophy for Energy Trading System
 
 Test-Driven Development is essential for this project due to:
 
@@ -813,7 +995,7 @@ Test-Driven Development is essential for this project due to:
 - **Blockchain integration** (immutable settlement records)
 - **Competitive pricing validation** (proving economic benefits)
 
-### 10.2 TDD Workflow: Red-Green-Refactor
+### 11.2 TDD Workflow: Red-Green-Refactor
 
 ```rust
 // 1. RED: Write a failing test
@@ -856,7 +1038,7 @@ impl Battery {
 }
 ```
 
-### 10.3 Test Categories and Examples
+### 11.3 Test Categories and Examples
 
 #### 10.3.1 Unit Tests (Fast, Isolated)
 
@@ -1010,7 +1192,7 @@ async fn test_message_throughput_1000_per_second() {
 }
 ```
 
-### 10.4 TDD Test Structure
+### 11.4 TDD Test Structure
 
 ```rust
 // Test module organization
@@ -1058,7 +1240,7 @@ mod tests {
 }
 ```
 
-### 10.5 TDD Benefits for This Project
+### 11.5 TDD Benefits for This Project
 
 **1. Timing Requirements Validation**
 

@@ -1,0 +1,39 @@
+{
+  "name": "energy-trading-tests",
+  "version": "1.0.0",
+  "description": "Comprehensive blockchain tests for Energy Trading System",
+  "scripts": {
+    "test": "anchor test",
+    "test:unit": "mocha -t 1000000 tests/energy_trading.ts",
+    "test:performance": "mocha -t 1000000 tests/performance_tests.ts",
+    "test:security": "mocha -t 1000000 tests/security_tests.ts",
+    "test:integration": "mocha -t 1000000 tests/integration_tests.ts",
+    "test:all": "npm run test:unit && npm run test:performance && npm run test:security && npm run test:integration",
+    "test:coverage": "nyc mocha -t 1000000 tests/*.ts",
+    "test:watch": "mocha -t 1000000 tests/*.ts --watch",
+    "test:ci": "npm run test:all -- --reporter json > test-results.json"
+  },
+  "devDependencies": {
+    "@coral-xyz/anchor": "^0.31.1",
+    "@solana/spl-token": "^0.4.1",
+    "@solana/web3.js": "^1.95.2",
+    "@types/chai": "^4.3.11",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^24.3.1",
+    "chai": "^4.3.7",
+    "mocha": "^10.2.0",
+    "nyc": "^15.1.0",
+    "ts-mocha": "^11.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "keywords": [
+    "solana",
+    "blockchain",
+    "energy-trading",
+    "testing",
+    "anchor"
+  ],
+  "author": "Energy Trading System",
+  "license": "MIT"
+}
