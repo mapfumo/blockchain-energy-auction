@@ -345,7 +345,7 @@ async fn start_global_event_generation(state: Arc<AppState>) {
                 info!("🔗 Blockchain settlement triggered for auction #{}", auction_counter);
                 
                 // Trigger blockchain settlement
-                let settlement_result = trigger_blockchain_settlement(
+                let settlement_signature = trigger_blockchain_settlement(
                     auction_counter,
                     winner.clone(),
                     seller.clone(),
@@ -353,19 +353,18 @@ async fn start_global_event_generation(state: Arc<AppState>) {
                     price,
                 ).await;
                 
-                if settlement_result {
+                let settlement_success = settlement_signature.is_some();
+                
+                if let Some(signature) = settlement_signature {
                     info!("✅ Blockchain settlement successful for auction #{}", auction_counter);
                     
                     // Create blockchain settlement event with real signature
-                    // Note: The actual signature is logged in the blockchain client
-                    // For now, we'll use a placeholder that indicates real settlement
-                    let signature = format!("REAL_SETTLEMENT_{}", auction_counter);
                     let settlement_event = serde_json::json!({
                         "type": "BlockchainSettlement",
                         "data": {
                             "auction_id": auction_counter,
-                            "winner": winner,
-                            "seller": seller,
+                            "winner": winner.clone(),
+                            "seller": seller.clone(),
                             "energy_amount": energy,
                             "final_price": price,
                             "total_value": energy * price as f64,
@@ -391,7 +390,7 @@ async fn start_global_event_generation(state: Arc<AppState>) {
                         "final_price": price,
                         "total_value": energy * price as f64,
                         "auction_duration_ms": 30000 + (rand::random::<u32>() % 60000),
-                        "blockchain_settlement": if settlement_result { "completed" } else { "failed" }
+                        "blockchain_settlement": if settlement_success { "completed" } else { "failed" }
                     }
                 })
             },

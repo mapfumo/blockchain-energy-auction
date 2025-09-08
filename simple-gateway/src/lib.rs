@@ -87,7 +87,7 @@ pub async fn trigger_blockchain_settlement(
     seller: String,
     energy: f64,
     price: u32,
-) -> bool {
+) -> Option<String> {
     println!("🔗 trigger_blockchain_settlement called for auction #{}: {} -> {} ({} kWh at {}¢)", 
              auction_id, winner, seller, energy, price);
     
@@ -100,7 +100,7 @@ pub async fn trigger_blockchain_settlement(
         },
         Err(e) => {
             eprintln!("❌ Failed to create blockchain client: {}", e);
-            return false;
+            return None;
         }
     };
     
@@ -131,11 +131,11 @@ pub async fn trigger_blockchain_settlement(
             println!("   - Energy: {:.2} kWh", energy);
             println!("   - Price: {}¢/kWh", price);
             println!("   - Total Value: ${:.2}", (energy * price as f64) / 10000.0);
-            true
+            Some(blockhash.to_string())
         }
         Err(e) => {
             eprintln!("❌ Blockchain connectivity failed: {}", e);
-            false
+            None
         }
     }
 }
