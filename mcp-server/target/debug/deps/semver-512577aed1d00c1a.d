@@ -1,0 +1,12 @@
+/home/tony/Desktop/energy-trading/mcp-server/target/debug/deps/libsemver-512577aed1d00c1a.rmeta: /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/semver-1.0.26/src/lib.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/semver-1.0.26/src/backport.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/semver-1.0.26/src/display.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/semver-1.0.26/src/error.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/semver-1.0.26/src/eval.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/semver-1.0.26/src/identifier.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/semver-1.0.26/src/impls.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/semver-1.0.26/src/parse.rs
+
+/home/tony/Desktop/energy-trading/mcp-server/target/debug/deps/semver-512577aed1d00c1a.d: /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/semver-1.0.26/src/lib.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/semver-1.0.26/src/backport.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/semver-1.0.26/src/display.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/semver-1.0.26/src/error.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/semver-1.0.26/src/eval.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/semver-1.0.26/src/identifier.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/semver-1.0.26/src/impls.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/semver-1.0.26/src/parse.rs
+
+/home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/semver-1.0.26/src/lib.rs:
+/home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/semver-1.0.26/src/backport.rs:
+/home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/semver-1.0.26/src/display.rs:
+/home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/semver-1.0.26/src/error.rs:
+/home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/semver-1.0.26/src/eval.rs:
+/home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/semver-1.0.26/src/identifier.rs:
+/home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/semver-1.0.26/src/impls.rs:
+/home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/semver-1.0.26/src/parse.rs:

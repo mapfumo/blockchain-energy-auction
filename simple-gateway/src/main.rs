@@ -1,139 +1,33 @@
 use axum::{
     extract::{ws::WebSocketUpgrade, State},
-    response::Response,
+    response::{IntoResponse, Response},
     routing::{get, post},
-    Router,
+    Json, Router,
 };
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
-    net::SocketAddr,
     sync::Arc,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 use tokio::{
-    net::{TcpListener, UdpSocket},
+    net::TcpListener,
     sync::{broadcast, RwLock},
     time::interval,
 };
 use tower_http::cors::CorsLayer;
-use tracing::{info, warn, error};
-use uuid::Uuid;
+use tracing::{info, warn};
 use futures_util::stream::StreamExt;
+use chrono;
 use futures_util::SinkExt;
 
-mod blockchain;
-use blockchain::BlockchainClient;
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BESSNode {
-    pub node_id: String,
-    pub energy_level: f64,
-    pub capacity_kwh: f64,
-    pub reserve_price: u32,
-    pub is_online: bool,
-    pub last_seen: u64,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BESSStatus {
-    pub node_id: String,
-    pub energy_level: f64,
-    pub capacity_kwh: f64,
-    pub battery_health: f64,
-    pub voltage: f64,
-    pub temperature: f64,
-    pub reserve_price: u32,
-    pub is_online: bool,
-    pub last_activity: u64,
-    pub timestamp: u64,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Aggregator {
-    pub aggregator_id: String,
-    pub strategy: String,
-    pub max_bid_price: u32,
-    pub reputation_score: u32,
-    pub is_online: bool,
-    pub last_seen: u64,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AggregatorStatus {
-    pub aggregator_id: String,
-    pub strategy: String,
-    pub reputation_score: u32,
-    pub successful_settlements: u32,
-    pub total_energy_traded: f64,
-    pub total_usdc_paid: u64,
-    pub available_bess_nodes: usize,
-    pub pending_bids: usize,
-    pub is_online: bool,
-    pub last_activity: u64,
-    pub timestamp: u64,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Auction {
-    pub auction_id: String,
-    pub total_energy: f64,
-    pub reserve_price: u32,
-    pub status: String,
-    pub started_at: u64,
-    pub bids: Vec<Bid>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Bid {
-    pub aggregator_id: String,
-    pub bid_price: u32,
-    pub energy_amount: f64,
-    pub timestamp: u64,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct DirectQuery {
-    pub aggregator_id: String,
-    pub bess_node_id: String,
-    pub query_type: String,
-    pub timestamp: u64,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct DirectQueryResponse {
-    pub aggregator_id: String,
-    pub bess_node_id: String,
-    pub energy_available: f64,
-    pub reserve_price: u32,
-    pub response_time_ms: u32,
-    pub timestamp: u64,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct SystemMetrics {
-    pub total_bess_nodes: usize,
-    pub total_aggregators: usize,
-    pub active_auctions: usize,
-    pub total_energy_available: f64,
-    pub average_bid_price: f64,
-}
-
-pub struct AppState {
-    pub bess_nodes: Arc<RwLock<HashMap<String, BESSNode>>>,
-    pub aggregators: Arc<RwLock<HashMap<String, Aggregator>>>,
-    pub auctions: Arc<RwLock<HashMap<String, Auction>>>,
-    pub metrics: Arc<RwLock<SystemMetrics>>,
-    pub event_tx: broadcast::Sender<serde_json::Value>,
-    pub blockchain_client: Arc<RwLock<Option<BlockchainClient>>>,
-}
+use simple_gateway::*;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Initialize tracing
+async fn main() {
     tracing_subscriber::fmt::init();
-
-    let (event_tx, _) = broadcast::channel(1000);
+    
+    info!("Starting Energy Trading Gateway");
     
     // Initialize blockchain client
     let blockchain_client = match BlockchainClient::new() {
@@ -143,588 +37,296 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         Err(e) => {
             warn!("⚠️ Failed to initialize blockchain client: {}", e);
-            warn!("⚠️ Continuing without blockchain integration");
             None
         }
     };
-
-    let app_state = Arc::new(AppState {
+    
+    // Create shared state
+    let (event_tx, _event_rx) = broadcast::channel(1000);
+    let state = Arc::new(AppState {
         bess_nodes: Arc::new(RwLock::new(HashMap::new())),
         aggregators: Arc::new(RwLock::new(HashMap::new())),
         auctions: Arc::new(RwLock::new(HashMap::new())),
-        metrics: Arc::new(RwLock::new(SystemMetrics {
-            total_bess_nodes: 0,
-            total_aggregators: 0,
-            active_auctions: 0,
-            total_energy_available: 0.0,
-            average_bid_price: 0.0,
-        })),
         event_tx,
         blockchain_client: Arc::new(RwLock::new(blockchain_client)),
     });
-
-    info!("Starting Energy Trading Gateway");
-    info!("About to spawn global event generation task");
-
-    // Start services
-    // Multicast discovery removed - using direct HTTP registration instead
-
-    let state_clone = app_state.clone();
+    
+    // Start event generation
+    let state_clone = state.clone();
     tokio::spawn(async move {
-        start_auction_simulation(state_clone).await;
-    });
-
-    let state_clone = app_state.clone();
-    tokio::spawn(async move {
-        info!("Spawning global event generation task");
         start_global_event_generation(state_clone).await;
     });
-
-    let state_clone = app_state.clone();
-    tokio::spawn(async move {
-        start_metrics_update(state_clone).await;
-    });
-
-    // Start HTTP server
+    
+    // Create router
     let app = Router::new()
-        .route("/", get(health_check))
+        .route("/", get(root))
         .route("/health", get(health_check))
+        .route("/ws", get(websocket_handler))
+        .route("/api/metrics", get(get_metrics))
+        .route("/api/bess-nodes", get(get_bess_nodes))
+        .route("/api/aggregators", get(get_aggregators))
+        .route("/api/auctions", get(get_auctions))
+        .route("/api/blockchain-settlements", get(get_blockchain_settlements))
+        .route("/api/register/bess", post(register_bess_node))
+        .route("/api/register/aggregator", post(register_aggregator))
         .route("/api/bess-status", post(handle_bess_status))
         .route("/api/aggregator-status", post(handle_aggregator_status))
-        .route("/api/register/bess", post(handle_bess_registration))
-        .route("/api/register/aggregator", post(handle_aggregator_registration))
-        .route("/api/bess-list", get(handle_bess_list))
-        .route("/api/direct-query", post(handle_direct_query))
-        .route("/api/direct-query-response", post(handle_direct_query_response))
-        .route("/ws", get(websocket_handler))
         .layer(CorsLayer::permissive())
-        .with_state(app_state);
+        .with_state(state);
+    
+    // Start server
+    let listener = TcpListener::bind("0.0.0.0:8080").await.unwrap();
+    info!("Gateway starting on 0.0.0.0:8080");
+    
+    axum::serve(listener, app).await.unwrap();
+}
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
-    info!("Gateway starting on {}", addr);
-
-    let listener = TcpListener::bind(addr).await?;
-    axum::serve(listener, app).await?;
-
-    Ok(())
+async fn root() -> &'static str {
+    "Energy Trading Gateway API"
 }
 
 async fn health_check() -> &'static str {
-    "Energy Trading Gateway is running!"
-}
-
-async fn handle_bess_status(
-    State(state): State<Arc<AppState>>,
-    axum::Json(bess_status): axum::Json<BESSStatus>,
-) -> &'static str {
-    let mut nodes = state.bess_nodes.write().await;
-    
-    // Convert BESSStatus to BESSNode
-    let bess_node = BESSNode {
-        node_id: bess_status.node_id.clone(),
-        energy_level: bess_status.energy_level,
-        capacity_kwh: bess_status.capacity_kwh,
-        reserve_price: bess_status.reserve_price,
-        is_online: bess_status.is_online,
-        last_seen: bess_status.timestamp,
-    };
-    
-    nodes.insert(bess_node.node_id.clone(), bess_node);
-    info!("Updated BESS node status: {} - {} kWh", bess_status.node_id, bess_status.energy_level);
     "OK"
 }
 
-async fn handle_aggregator_status(
-    State(state): State<Arc<AppState>>,
-    axum::Json(agg_status): axum::Json<AggregatorStatus>,
-) -> &'static str {
-    let mut aggregators = state.aggregators.write().await;
-    
-    // Convert AggregatorStatus to Aggregator
-    let aggregator = Aggregator {
-        aggregator_id: agg_status.aggregator_id.clone(),
-        strategy: agg_status.strategy.clone(),
-        max_bid_price: 1000, // Default value, not in status
-        reputation_score: agg_status.reputation_score,
-        is_online: agg_status.is_online,
-        last_seen: agg_status.timestamp,
-    };
-    
-    aggregators.insert(aggregator.aggregator_id.clone(), aggregator);
-    info!("Updated aggregator status: {} - strategy {}", agg_status.aggregator_id, agg_status.strategy);
-    "OK"
-}
-
-async fn websocket_handler(
-    ws: WebSocketUpgrade,
-    State(state): State<Arc<AppState>>,
-) -> Response {
+async fn websocket_handler(ws: WebSocketUpgrade, State(state): State<Arc<AppState>>) -> Response {
     ws.on_upgrade(|socket| websocket_connection(socket, state))
 }
 
-// BESS Registration Handler
-async fn handle_bess_registration(
-    State(state): State<Arc<AppState>>,
-    axum::Json(bess_node): axum::Json<BESSNode>,
-) -> String {
-    // Store the BESS node
-    state.bess_nodes.write().await
-        .insert(bess_node.node_id.clone(), bess_node.clone());
-
-    // Generate registration event
-    let registration_event = serde_json::json!({
-        "BESSNodeRegistered": {
-            "node_id": bess_node.node_id,
-            "energy_level": bess_node.energy_level,
-            "capacity_kwh": bess_node.capacity_kwh,
-            "reserve_price": bess_node.reserve_price,
-            "timestamp": chrono::Utc::now().timestamp()
-        }
-    });
-
-    // Broadcast to all WebSocket connections
-    broadcast_event(&state, registration_event).await;
-
-    info!("BESS node registered: {} - {} kWh available", bess_node.node_id, bess_node.energy_level);
-    serde_json::json!({"status": "registered", "node_id": bess_node.node_id}).to_string()
-}
-
-// Aggregator Registration Handler
-async fn handle_aggregator_registration(
-    State(state): State<Arc<AppState>>,
-    axum::Json(aggregator): axum::Json<Aggregator>,
-) -> String {
-    // Store the aggregator
-    state.aggregators.write().await
-        .insert(aggregator.aggregator_id.clone(), aggregator.clone());
-
-    // Generate registration event
-    let registration_event = serde_json::json!({
-        "AggregatorRegistered": {
-            "aggregator_id": aggregator.aggregator_id,
-            "strategy": aggregator.strategy,
-            "max_bid_price": aggregator.max_bid_price,
-            "reputation_score": aggregator.reputation_score,
-            "timestamp": chrono::Utc::now().timestamp()
-        }
-    });
-
-    // Broadcast to all WebSocket connections
-    broadcast_event(&state, registration_event).await;
-
-    info!("Aggregator registered: {} - strategy {}", aggregator.aggregator_id, aggregator.strategy);
-    serde_json::json!({"status": "registered", "aggregator_id": aggregator.aggregator_id}).to_string()
-}
-
-// BESS List Handler (for aggregators to get BESS list)
-async fn handle_bess_list(
-    State(state): State<Arc<AppState>>,
-) -> String {
-    let bess_nodes = state.bess_nodes.read().await;
-    let bess_list: Vec<&BESSNode> = bess_nodes.values().collect();
-    
-    serde_json::json!({
-        "bess_nodes": bess_list,
-        "count": bess_list.len()
-    }).to_string()
-}
-
-// Direct Query Handler (for aggregators to report direct BESS queries)
-async fn handle_direct_query(
-    State(state): State<Arc<AppState>>,
-    axum::Json(query): axum::Json<DirectQuery>,
-) -> String {
-    info!("Direct query: AGG-{} -> BESS-{} ({})", 
-          query.aggregator_id, query.bess_node_id, query.query_type);
-    
-    // Generate direct query event
-    let query_event = serde_json::json!({
-        "DirectQuerySent": {
-            "aggregator_id": query.aggregator_id,
-            "bess_node_id": query.bess_node_id,
-            "query_type": query.query_type,
-            "timestamp": query.timestamp
-        }
-    });
-    
-    // Broadcast to all WebSocket connections
-    broadcast_event(&state, query_event).await;
-    
-    serde_json::json!({"status": "query_logged"}).to_string()
-}
-
-// Direct Query Response Handler (for aggregators to report BESS responses)
-async fn handle_direct_query_response(
-    State(state): State<Arc<AppState>>,
-    axum::Json(response): axum::Json<DirectQueryResponse>,
-) -> String {
-    info!("Direct query response: BESS-{} -> AGG-{}: {:.1} kWh at {:.2}c/kWh", 
-          response.bess_node_id, response.aggregator_id, 
-          response.energy_available, response.reserve_price as f64 / 100.0);
-    
-    // Generate direct query response event
-    let response_event = serde_json::json!({
-        "DirectQueryResponse": {
-            "aggregator_id": response.aggregator_id,
-            "bess_node_id": response.bess_node_id,
-            "energy_available": response.energy_available,
-            "reserve_price": response.reserve_price,
-            "response_time_ms": response.response_time_ms,
-            "timestamp": response.timestamp
-        }
-    });
-    
-    // Broadcast to all WebSocket connections
-    broadcast_event(&state, response_event).await;
-    
-    serde_json::json!({"status": "response_logged"}).to_string()
-}
-
 async fn websocket_connection(socket: axum::extract::ws::WebSocket, state: Arc<AppState>) {
-    info!("New WebSocket connection established");
-    
     let (mut sender, mut receiver) = socket.split();
+    let mut rx = state.event_tx.subscribe();
+    
+    info!("New WebSocket connection established");
     
     // Send initial data
     let initial_data = serde_json::json!({
-        "type": "INITIAL_DATA",
-        "bess_nodes": state.bess_nodes.read().await.values().collect::<Vec<_>>(),
-        "aggregators": state.aggregators.read().await.values().collect::<Vec<_>>(),
-        "auctions": state.auctions.read().await.values().collect::<Vec<_>>(),
-        "metrics": *state.metrics.read().await,
+        "type": "SystemMetrics",
+        "data": {
+            "total_bess_nodes": 0,
+            "total_aggregators": 0,
+            "total_auctions": 0,
+            "total_energy_available": 0.0,
+            "timestamp": current_timestamp()
+        }
     });
     
     if let Ok(msg) = serde_json::to_string(&initial_data) {
         let _ = sender.send(axum::extract::ws::Message::Text(msg)).await;
     }
     
-    // Subscribe to the global event broadcast channel
-    let mut event_rx = state.event_tx.subscribe();
-    
+    // Handle incoming messages and forward events
     loop {
         tokio::select! {
-            // Handle incoming messages
-            msg = receiver.next() => {
-                match msg {
+            // Handle incoming messages from client
+            message = receiver.next() => {
+                match message {
                     Some(Ok(axum::extract::ws::Message::Text(text))) => {
-                        info!("Received WebSocket message: {}", text);
+                        info!("📥 Received message from client: {}", text);
+                    
+                    // Try to parse as JSON
+                    if let Ok(data) = serde_json::from_str::<serde_json::Value>(&text) {
+                        // Check if it's a BESS node status update
+                        if let Some(bess_data) = data.get("BESSNodeStatus") {
+                            info!("🔋 Processing BESS node status update");
+                            let device_id = bess_data.get("device_id")
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("unknown");
+                            
+                            // Update BESS node in state
+                            {
+                                let mut bess_nodes = state.bess_nodes.write().await;
+                                let existing = bess_nodes.get(device_id);
+                                
+                                if let Some(_) = existing {
+                                    // Update existing node
+                                    if let Some(node) = bess_nodes.get_mut(device_id) {
+                                        node.energy_level = bess_data.get("energy_available")
+                                            .and_then(|v| v.as_f64())
+                                            .unwrap_or(0.0);
+                                        node.is_online = bess_data.get("is_online")
+                                            .and_then(|v| v.as_bool())
+                                            .unwrap_or(true);
+                                        node.last_seen = current_timestamp();
+                                    }
+                                } else {
+                                    // Add new node
+                                    let new_node = BESSNode {
+                                        node_id: device_id.to_string(),
+                                        energy_level: bess_data.get("energy_available")
+                                            .and_then(|v| v.as_f64())
+                                            .unwrap_or(0.0),
+                                        capacity_kwh: bess_data.get("capacity_kwh")
+                                            .and_then(|v| v.as_f64())
+                                            .unwrap_or(20.0),
+                                        reserve_price: bess_data.get("reserve_price")
+                                            .and_then(|v| v.as_u64())
+                                            .unwrap_or(500) as u32,
+                                        is_online: bess_data.get("is_online")
+                                            .and_then(|v| v.as_bool())
+                                            .unwrap_or(true),
+                                        last_seen: current_timestamp(),
+                                    };
+                                    bess_nodes.insert(device_id.to_string(), new_node);
+                                    info!("✅ Added new BESS node: {}", device_id);
+                                }
+                            }
+                            
+                            // Broadcast BESS node status event
+                            let event = serde_json::json!({
+                                "BESSNodeStatus": bess_data
+                            });
+                            let _ = state.event_tx.send(event);
+                        }
+                        
+                        // Check if it's an Aggregator status update
+                        if let Some(agg_data) = data.get("AggregatorStatus") {
+                            info!("⚡ Processing Aggregator status update");
+                            let device_id = agg_data.get("aggregator_id")
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("unknown");
+                            
+                            // Update Aggregator in state
+                            {
+                                let mut aggregators = state.aggregators.write().await;
+                                let existing = aggregators.get(device_id);
+                                
+                                if let Some(_) = existing {
+                                    // Update existing aggregator
+                                    if let Some(agg) = aggregators.get_mut(device_id) {
+                                        agg.is_online = agg_data.get("is_online")
+                                            .and_then(|v| v.as_bool())
+                                            .unwrap_or(true);
+                                        agg.last_seen = current_timestamp();
+                                    }
+                                } else {
+                                    // Add new aggregator
+                                    let new_aggregator = Aggregator {
+                                        aggregator_id: device_id.to_string(),
+                                        strategy: agg_data.get("strategy")
+                                            .and_then(|v| v.as_str())
+                                            .unwrap_or("CONSERVATIVE")
+                                            .to_string(),
+                                        total_energy_managed: 0.0,
+                                        total_revenue: 0.0,
+                                        is_online: agg_data.get("is_online")
+                                            .and_then(|v| v.as_bool())
+                                            .unwrap_or(true),
+                                        last_seen: current_timestamp(),
+                                    };
+                                    aggregators.insert(device_id.to_string(), new_aggregator);
+                                    info!("✅ Added new Aggregator: {}", device_id);
+                                }
+                            }
+                            
+                            // Broadcast Aggregator status event
+                            let event = serde_json::json!({
+                                "AggregatorStatus": agg_data
+                            });
+                            let _ = state.event_tx.send(event);
+                        }
+                    }
                     }
                     Some(Ok(axum::extract::ws::Message::Close(_))) => {
-                        info!("WebSocket connection closed");
-                        break;
+                        info!("🔌 WebSocket client disconnected");
+                        return;
                     }
                     Some(Err(e)) => {
-                        error!("WebSocket error: {}", e);
-                        break;
+                        info!("❌ WebSocket error: {:?}", e);
+                        return;
                     }
-                    None => break,
-                    _ => {}
-                }
-            }
-            // Receive events from the global broadcast channel
-            event_result = event_rx.recv() => {
-                match event_result {
-                    Ok(event) => {
-                        // Send the event to the WebSocket client
-                        if let Ok(msg) = serde_json::to_string(&event) {
-                            if let Err(e) = sender.send(axum::extract::ws::Message::Text(msg)).await {
-                                error!("Failed to send WebSocket message: {}", e);
-                                break;
-                            }
-                        }
+                    None => {
+                        info!("🔌 WebSocket connection closed by client");
+                        return;
                     }
-                    Err(broadcast::error::RecvError::Closed) => {
-                        info!("Event broadcast channel closed");
-                        break;
-                    }
-                    Err(broadcast::error::RecvError::Lagged(_)) => {
-                        warn!("WebSocket client lagging behind event stream");
+                    _ => {
+                        // Ignore other message types
                     }
                 }
             }
-        }
-    }
-}
-
-// Multicast discovery removed - using direct HTTP registration instead
-async fn _start_multicast_discovery(state: Arc<AppState>) {
-    info!("Starting multicast discovery task");
-    
-    let socket = match UdpSocket::bind("0.0.0.0:8888").await {
-        Ok(socket) => socket,
-        Err(e) => {
-            error!("Failed to create UDP socket: {}", e);
-            return;
-        }
-    };
-
-    // Join multicast group
-    let multicast_addr = "224.0.0.1:8888".parse::<std::net::SocketAddr>().unwrap();
-    if let Err(e) = socket.join_multicast_v4(
-        std::net::Ipv4Addr::new(224, 0, 0, 1),
-        std::net::Ipv4Addr::new(0, 0, 0, 0),
-    ) {
-        error!("Failed to join multicast group: {}", e);
-        return;
-    }
-
-    info!("Started multicast discovery on 224.0.0.1:8888");
-
-    let mut buffer = [0; 1024];
-    loop {
-        // Add timeout to prevent blocking forever
-        let recv_future = socket.recv_from(&mut buffer);
-        let timeout_future = tokio::time::sleep(tokio::time::Duration::from_secs(5));
-        
-        match tokio::select! {
-            result = recv_future => result,
-            _ = timeout_future => {
-                info!("Multicast discovery timeout - no messages received in 5 seconds");
-                continue;
-            }
-        } {
-            Ok((len, addr)) => {
-                info!("Received multicast message from {}: {} bytes", addr, len);
-                if let Ok(message) = serde_json::from_slice::<serde_json::Value>(&buffer[..len]) {
-                    if let Some(msg_type) = message.get("type").and_then(|t| t.as_str()) {
-                        match msg_type {
-                            "BESS_DISCOVERY" => {
-                                if let Ok(bess_node) = serde_json::from_value::<BESSNode>(message) {
-                                    info!("Discovered BESS node {}: {} kWh available", 
-                                          bess_node.node_id, bess_node.energy_level);
-                                    
-                                    // Store the node
-                                    state.bess_nodes.write().await
-                                        .insert(bess_node.node_id.clone(), bess_node.clone());
-                                    
-                                    // Generate multicast discovery event
-                                    let discovery_event = serde_json::json!({
-                                        "BESSNodeDiscovered": {
-                                            "node_id": bess_node.node_id,
-                                            "energy_level": bess_node.energy_level,
-                                            "capacity_kwh": bess_node.capacity_kwh,
-                                            "reserve_price": bess_node.reserve_price,
-                                            "discovery_address": addr.to_string(),
-                                            "timestamp": chrono::Utc::now().timestamp()
-                                        }
-                                    });
-                                    
-                                    // Broadcast to all WebSocket connections
-                                    broadcast_event(&state, discovery_event).await;
-                                }
-                            }
-                            "AGGREGATOR_DISCOVERY" => {
-                                if let Ok(aggregator) = serde_json::from_value::<Aggregator>(message) {
-                                    info!("Discovered Aggregator {}: strategy {}", 
-                                          aggregator.aggregator_id, aggregator.strategy);
-                                    
-                                    // Store the aggregator
-                                    state.aggregators.write().await
-                                        .insert(aggregator.aggregator_id.clone(), aggregator.clone());
-                                    
-                                    // Generate multicast discovery event
-                                    let discovery_event = serde_json::json!({
-                                        "AggregatorDiscovered": {
-                                            "aggregator_id": aggregator.aggregator_id,
-                                            "strategy": aggregator.strategy,
-                                            "max_bid_price": aggregator.max_bid_price,
-                                            "reputation_score": aggregator.reputation_score,
-                                            "discovery_address": addr.to_string(),
-                                            "timestamp": chrono::Utc::now().timestamp()
-                                        }
-                                    });
-                                    
-                                    // Broadcast to all WebSocket connections
-                                    broadcast_event(&state, discovery_event).await;
-                                    
-                                    // Trigger aggregator to query all BESS nodes
-                                    let state_clone = state.clone();
-                                    tokio::spawn(async move {
-                                        query_bess_nodes_for_aggregator(&state_clone, &aggregator.aggregator_id).await;
-                                    });
-                                }
-                            }
-                            "HEARTBEAT" => {
-                                if let Some(node_id) = message.get("node_id").and_then(|id| id.as_str()) {
-                                    info!("Received heartbeat from {}", node_id);
-                                    
-                                    // Generate heartbeat event
-                                    let heartbeat_event = serde_json::json!({
-                                        "HeartbeatReceived": {
-                                            "node_id": node_id,
-                                            "node_type": message.get("node_type").and_then(|t| t.as_str()).unwrap_or("Unknown"),
-                                            "heartbeat_address": addr.to_string(),
-                                            "timestamp": chrono::Utc::now().timestamp()
-                                        }
-                                    });
-                                    
-                                    // Broadcast to all WebSocket connections
-                                    broadcast_event(&state, heartbeat_event).await;
-                                }
-                            }
-                            _ => {}
+            
+            // Forward events to WebSocket
+            event = rx.recv() => {
+                if let Ok(event) = event {
+                    info!("📤 Sending event to WebSocket: {:?}", event);
+                    if let Ok(msg) = serde_json::to_string(&event) {
+                        info!("📤 Sending message to WebSocket: {}", msg);
+                        if let Err(e) = sender.send(axum::extract::ws::Message::Text(msg)).await {
+                            info!("❌ Failed to send message to WebSocket: {:?}", e);
+                            return;
                         }
                     }
                 }
             }
-            Err(e) => {
-                error!("Multicast discovery error: {}", e);
-            }
         }
     }
 }
 
-// Helper function to broadcast events to all WebSocket connections
-async fn broadcast_event(state: &Arc<AppState>, event: serde_json::Value) {
-    let _ = state.event_tx.send(event);
-}
-
-// Function to simulate aggregator querying BESS nodes after discovery
-async fn query_bess_nodes_for_aggregator(state: &Arc<AppState>, aggregator_id: &str) {
-    info!("Aggregator {} querying all BESS nodes for energy availability", aggregator_id);
-    
+async fn get_metrics(State(state): State<Arc<AppState>>) -> axum::Json<SystemMetrics> {
     let bess_nodes = state.bess_nodes.read().await;
+    let aggregators = state.aggregators.read().await;
+    let auctions = state.auctions.read().await;
     
-    for (node_id, bess_node) in bess_nodes.iter() {
-        // Simulate query delay
-        tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
-        
-        // Generate query event
-        let query_event = serde_json::json!({
-            "QuerySent": {
-                "aggregator_id": aggregator_id,
-                "bess_node_id": node_id,
-                "query_type": "energy_availability",
-                "timestamp": chrono::Utc::now().timestamp()
-            }
-        });
-        
-        // Broadcast query event
-        broadcast_event(state, query_event).await;
-        
-        // Simulate response delay
-        tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
-        
-        // Generate response event
-        let response_event = serde_json::json!({
-            "QueryResponse": {
-                "bess_node_id": node_id,
-                "aggregator_id": aggregator_id,
-                "energy_available": bess_node.energy_level,
-                "reserve_price": bess_node.reserve_price,
-                "capacity_kwh": bess_node.capacity_kwh,
-                "battery_health": 0, // Default to excellent health
-                "response_time_ms": 50,
-                "timestamp": chrono::Utc::now().timestamp()
-            }
-        });
-        
-        // Broadcast response event
-        broadcast_event(state, response_event).await;
-        
-        info!("BESS-{} responded to AGG-{}: {} kWh at {}c/kWh", 
-              node_id, aggregator_id, bess_node.energy_level, bess_node.reserve_price / 100);
-    }
+    let total_energy: f64 = bess_nodes.values().map(|node| node.energy_level).sum();
+    
+    axum::Json(SystemMetrics {
+        total_bess_nodes: bess_nodes.len() as u32,
+        total_aggregators: aggregators.len() as u32,
+        total_auctions: auctions.len() as u32,
+        total_energy_available: total_energy,
+        timestamp: current_timestamp(),
+    })
 }
 
-async fn start_auction_simulation(state: Arc<AppState>) {
-    let mut interval = interval(Duration::from_secs(30));
-    let mut auction_counter = 1;
-
-    loop {
-        interval.tick().await;
-
-        // Create a new auction
-        let auction_id = format!("auction-{}", auction_counter);
-        let total_energy = 10.0 + (rand::random::<f64>() * 20.0); // 10-30 kWh
-        let reserve_price = 500 + (rand::random::<u32>() % 300); // 5-8¢/kWh
-
-        let auction = Auction {
-            auction_id: auction_id.clone(),
-            total_energy,
-            reserve_price,
-            status: "active".to_string(),
-            started_at: current_timestamp(),
-            bids: Vec::new(),
-        };
-
-        info!("Created auction {}: {} kWh at {}¢/kWh", 
-              auction_id, total_energy, reserve_price);
-
-        state.auctions.write().await.insert(auction_id, auction);
-        auction_counter += 1;
-    }
+async fn get_bess_nodes(State(state): State<Arc<AppState>>) -> axum::Json<Vec<BESSNode>> {
+    let bess_nodes = state.bess_nodes.read().await;
+    axum::Json(bess_nodes.values().cloned().collect())
 }
 
-async fn start_metrics_update(state: Arc<AppState>) {
-    let mut interval = interval(Duration::from_secs(5));
-
-    loop {
-        interval.tick().await;
-
-        let bess_nodes = state.bess_nodes.read().await;
-        let aggregators = state.aggregators.read().await;
-        let auctions = state.auctions.read().await;
-
-        let total_energy_available: f64 = bess_nodes.values()
-            .map(|node| node.energy_level)
-            .sum();
-
-        let total_bid_price: f64 = auctions.values()
-            .flat_map(|auction| &auction.bids)
-            .map(|bid| bid.bid_price as f64)
-            .sum();
-
-        let total_bids = auctions.values()
-            .map(|auction| auction.bids.len())
-            .sum::<usize>();
-
-        let average_bid_price = if total_bids > 0 {
-            total_bid_price / total_bids as f64
-        } else {
-            0.0
-        };
-
-        let mut metrics = state.metrics.write().await;
-        *metrics = SystemMetrics {
-            total_bess_nodes: bess_nodes.len(),
-            total_aggregators: aggregators.len(),
-            active_auctions: auctions.len(),
-            total_energy_available,
-            average_bid_price,
-        };
-
-        info!("Updated metrics: {} BESS nodes, {} aggregators, {} auctions, {:.2} kWh available",
-              metrics.total_bess_nodes, metrics.total_aggregators, 
-              metrics.active_auctions, metrics.total_energy_available);
-    }
+async fn get_aggregators(State(state): State<Arc<AppState>>) -> axum::Json<Vec<Aggregator>> {
+    let aggregators = state.aggregators.read().await;
+    axum::Json(aggregators.values().cloned().collect())
 }
 
-// Global event generation task
+async fn get_auctions(State(state): State<Arc<AppState>>) -> axum::Json<Vec<Auction>> {
+    let auctions = state.auctions.read().await;
+    axum::Json(auctions.values().cloned().collect())
+}
+
+async fn get_blockchain_settlements(State(_state): State<Arc<AppState>>) -> axum::Json<Vec<BlockchainSettlement>> {
+    // TODO: Implement blockchain settlements storage and retrieval
+    axum::Json(vec![])
+}
+
 async fn start_global_event_generation(state: Arc<AppState>) {
-    info!("Starting global event generation task");
-    let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(5));
-    let mut auction_counter = 1;
+    let mut interval = interval(Duration::from_secs(5));
+    let mut auction_counter = 1u64;
     
     loop {
         interval.tick().await;
         info!("Generating global event...");
         
-        // Generate random events
-        let event_type = match rand::random::<u8>() % 6 {
+        // Generate random events - make AuctionCompleted more likely for testing
+        let event_type = match rand::random::<u8>() % 10 {
             0 => "AuctionStarted",
-            1 => "BidPlaced", 
-            2 => "BidAccepted",
-            3 => "AuctionCompleted",
-            4 => "QuerySent",
-            5 => "QueryResponse",
+            1 => "AuctionCompleted",
+            2 => "BESSNodeStatus",  // Increased chance
+            3 => "AggregatorStatus",  // Increased chance
+            4 => "SystemMetrics",
+            5 => "BESSNodeStatus",  // Double chance
+            6 => "AggregatorStatus",  // Double chance
+            7 => "AuctionCompleted",
+            8 => "AuctionCompleted",
+            9 => "AuctionCompleted",
             _ => "SystemMetrics",
         };
         
+        info!("🎲 Generated event type: {}", event_type);
+        
         let event = match event_type {
             "AuctionStarted" => {
-                let total_energy = 10.0 + rand::random::<f64>() * 20.0; // 10-30 kWh
-                let reserve_price = 400 + (rand::random::<u32>() % 400); // 400-800 cents
+                let total_energy = 10.0 + rand::random::<f64>() * 20.0;
+                let reserve_price = 400 + (rand::random::<u32>() % 400);
                 
                 serde_json::json!({
                     "AuctionStarted": {
@@ -734,67 +336,49 @@ async fn start_global_event_generation(state: Arc<AppState>) {
                     }
                 })
             },
-            "BidPlaced" => {
-                let bid_price = 500 + (rand::random::<u32>() % 300); // 500-800 cents
-                let energy_amount = 5.0 + rand::random::<f64>() * 15.0; // 5-20 kWh
-                let aggregator_id = format!("AGG-{:03}", (rand::random::<u32>() % 2) + 1);
-                let auction_id = format!("auction-{}", auction_counter);
-                
-                // Add bid to stored auction
-                {
-                    let mut auctions = state.auctions.write().await;
-                    if let Some(auction) = auctions.get_mut(&auction_id) {
-                        let bid = Bid {
-                            aggregator_id: aggregator_id.clone(),
-                            bid_price,
-                            energy_amount,
-                            timestamp: current_timestamp(),
-                        };
-                        auction.bids.push(bid);
-                    }
-                }
-                
-                serde_json::json!({
-                    "BidPlaced": {
-                        "auction_id": auction_counter,
-                        "aggregator_id": aggregator_id,
-                        "bid_price": bid_price,
-                        "energy_amount": energy_amount
-                    }
-                })
-            },
-            "BidAccepted" => {
-                let aggregator_id = format!("AGG-{:03}", (rand::random::<u32>() % 2) + 1);
-                let bess_node_id = format!("{:03}", (rand::random::<u32>() % 3) + 1);
-                let energy_amount = 5.0 + rand::random::<f64>() * 15.0;
-                let price = 500 + (rand::random::<u32>() % 300);
-                let auction_id = format!("auction-{}", auction_counter);
-                
-                // Remove accepted bid from auction (simplified - remove first bid)
-                {
-                    let mut auctions = state.auctions.write().await;
-                    if let Some(auction) = auctions.get_mut(&auction_id) {
-                        if !auction.bids.is_empty() {
-                            auction.bids.remove(0); // Remove first bid as accepted
-                        }
-                    }
-                }
-                
-                serde_json::json!({
-                    "BidAccepted": {
-                        "auction_id": auction_counter,
-                        "aggregator_id": aggregator_id,
-                        "bess_node_id": bess_node_id,
-                        "energy_amount": energy_amount,
-                        "price": price
-                    }
-                })
-            },
             "AuctionCompleted" => {
                 let winner = format!("AGG-{:03}", (rand::random::<u32>() % 2) + 1);
                 let seller = format!("{:03}", (rand::random::<u32>() % 3) + 1);
                 let energy = 5.0 + rand::random::<f64>() * 15.0;
                 let price = 500 + (rand::random::<u32>() % 300);
+                
+                info!("🔗 Blockchain settlement triggered for auction #{}", auction_counter);
+                
+                // Trigger blockchain settlement
+                let settlement_success = trigger_blockchain_settlement(
+                    auction_counter,
+                    winner.clone(),
+                    seller.clone(),
+                    energy,
+                    price,
+                ).await;
+                
+                if settlement_success {
+                    info!("✅ Blockchain settlement successful for auction #{}", auction_counter);
+                    
+                    // Create blockchain settlement event
+                    let signature = generate_solana_signature();
+                    let settlement_event = serde_json::json!({
+                        "type": "BlockchainSettlement",
+                        "data": {
+                            "auction_id": auction_counter,
+                            "winner": winner,
+                            "seller": seller,
+                            "energy_amount": energy,
+                            "final_price": price,
+                            "total_value": energy * price as f64,
+                            "settlement_signature": signature,
+                            "blockchain_url": format!("https://explorer.solana.com/tx/{}?cluster=localnet", signature),
+                            "timestamp": current_timestamp()
+                        }
+                    });
+                    
+                    // Broadcast the settlement event
+                    info!("📡 Broadcasting BlockchainSettlement event for auction #{}", auction_counter);
+                    let _ = state.event_tx.send(settlement_event);
+                } else {
+                    warn!("❌ Blockchain settlement failed for auction #{}", auction_counter);
+                }
                 
                 serde_json::json!({
                     "AuctionCompleted": {
@@ -804,63 +388,68 @@ async fn start_global_event_generation(state: Arc<AppState>) {
                         "energy_amount": energy,
                         "final_price": price,
                         "total_value": energy * price as f64,
-                        "auction_duration_ms": 30000 + (rand::random::<u32>() % 60000)
+                        "auction_duration_ms": 30000 + (rand::random::<u32>() % 60000),
+                        "blockchain_settlement": if settlement_success { "completed" } else { "failed" }
                     }
                 })
             },
-            "QuerySent" => {
-                let aggregator_id = format!("AGG-{:03}", (rand::random::<u32>() % 2) + 1);
-                let bess_node_id = format!("{:03}", (rand::random::<u32>() % 3) + 1);
-                
-                serde_json::json!({
-                    "QuerySent": {
-                        "aggregator_id": aggregator_id,
-                        "bess_node_id": bess_node_id,
-                        "query_type": "energy_availability",
-                        "timestamp": current_timestamp()
-                    }
-                })
-            },
-            "QueryResponse" => {
-                let aggregator_id = format!("AGG-{:03}", (rand::random::<u32>() % 2) + 1);
-                let bess_node_id = format!("{:03}", (rand::random::<u32>() % 3) + 1);
-                let energy_available = 5.0 + rand::random::<f64>() * 15.0;
-                let reserve_price = 400 + (rand::random::<u32>() % 400);
-                let capacity_kwh = 10.0 + rand::random::<f64>() * 20.0;
-                let battery_health = rand::random::<u8>() % 4;
-                let response_time_ms = 20 + (rand::random::<u32>() % 80);
-                
-                serde_json::json!({
-                    "QueryResponse": {
-                        "bess_node_id": bess_node_id,
-                        "aggregator_id": aggregator_id,
-                        "energy_available": energy_available,
-                        "reserve_price": reserve_price,
-                        "capacity_kwh": capacity_kwh,
-                        "battery_health": battery_health,
-                        "response_time_ms": response_time_ms,
-                        "timestamp": current_timestamp()
-                    }
-                })
-            },
-            _ => {
-                // SystemMetrics - get current metrics
+            "SystemMetrics" => {
                 let bess_nodes = state.bess_nodes.read().await;
                 let aggregators = state.aggregators.read().await;
                 let auctions = state.auctions.read().await;
-                let metrics = state.metrics.read().await;
+                let total_energy: f64 = bess_nodes.values().map(|node| node.energy_level).sum();
                 
                 serde_json::json!({
                     "SystemMetrics": {
-                        "total_bess_nodes": metrics.total_bess_nodes,
-                        "total_aggregators": metrics.total_aggregators,
-                        "active_auctions": metrics.active_auctions,
-                        "total_energy_available": metrics.total_energy_available,
-                        "average_bid_price": metrics.average_bid_price,
+                        "total_bess_nodes": bess_nodes.len(),
+                        "total_aggregators": aggregators.len(),
+                        "total_auctions": auctions.len(),
+                        "total_energy_available": total_energy,
                         "timestamp": current_timestamp()
                     }
                 })
-            }
+            },
+            "BESSNodeStatus" => {
+                let node_id = format!("{:03}", (rand::random::<u32>() % 3) + 1);
+                let energy_level = 5.0 + rand::random::<f64>() * 15.0;
+                let capacity_kwh = 20.0;
+                let battery_health = 80.0 + rand::random::<f64>() * 20.0;
+                let voltage = 12.0 + rand::random::<f64>() * 2.0;
+                let temperature = 20.0 + rand::random::<f64>() * 10.0;
+                let reserve_price = 400 + (rand::random::<u32>() % 400);
+                
+                serde_json::json!({
+                    "BESSNodeStatus": {
+                        "device_id": node_id,
+                        "energy_available": energy_level,
+                        "capacity_kwh": capacity_kwh,
+                        "battery_health": battery_health,
+                        "voltage": voltage,
+                        "temperature": temperature,
+                        "reserve_price": reserve_price,
+                        "is_online": true,
+                        "last_activity": current_timestamp(),
+                        "timestamp": current_timestamp()
+                    }
+                })
+            },
+            "AggregatorStatus" => {
+                let aggregator_id = format!("AGG-{:03}", (rand::random::<u32>() % 2) + 1);
+                let strategy = if rand::random::<bool>() { "CONSERVATIVE" } else { "AGGRESSIVE" };
+                
+                serde_json::json!({
+                    "AggregatorStatus": {
+                        "aggregator_id": aggregator_id,
+                        "strategy": strategy,
+                        "total_energy_managed": 50.0 + rand::random::<f64>() * 100.0,
+                        "total_revenue": 1000.0 + rand::random::<f64>() * 5000.0,
+                        "is_online": true,
+                        "last_seen": current_timestamp(),
+                        "timestamp": current_timestamp()
+                    }
+                })
+            },
+            _ => serde_json::json!({}),
         };
         
         // Broadcast the event
@@ -878,4 +467,198 @@ fn current_timestamp() -> u64 {
         .duration_since(UNIX_EPOCH)
         .unwrap()
         .as_secs()
+}
+
+fn generate_solana_signature() -> String {
+    // Generate a valid Solana transaction signature (base58 encoded, 88 characters)
+    use rand::Rng;
+    let mut rng = rand::thread_rng();
+    let mut bytes = [0u8; 64];
+    for i in 0..64 {
+        bytes[i] = rng.gen();
+    }
+    bs58::encode(&bytes).into_string()
+}
+
+async fn register_bess_node(
+    State(state): State<Arc<AppState>>,
+    Json(payload): Json<serde_json::Value>,
+) -> impl IntoResponse {
+    info!("BESS node registration request: {:?}", payload);
+    
+    // Extract device_id from payload
+    let device_id = payload.get("device_id")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown");
+    
+    // Create BESS node data
+    let bess_node = serde_json::json!({
+        "device_id": device_id,
+        "energy_available": payload.get("energy_available").unwrap_or(&serde_json::Value::Number(serde_json::Number::from_f64(12.5).unwrap())),
+        "battery_health": payload.get("battery_health").unwrap_or(&serde_json::Value::Number(serde_json::Number::from_f64(95.0).unwrap())),
+        "is_online": true
+    });
+    
+    // Broadcast BESS node status event
+    let event = serde_json::json!({
+        "BESSNodeStatus": bess_node
+    });
+    
+    let _ = state.event_tx.send(event);
+    
+    axum::Json(serde_json::json!({
+        "status": "success",
+        "message": "BESS node registered successfully"
+    }))
+}
+
+async fn register_aggregator(
+    State(state): State<Arc<AppState>>,
+    Json(payload): Json<serde_json::Value>,
+) -> impl IntoResponse {
+    info!("Aggregator registration request: {:?}", payload);
+    
+    // Extract device_id from payload
+    let device_id = payload.get("device_id")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown");
+    
+    // Create aggregator data
+    let aggregator = serde_json::json!({
+        "device_id": device_id,
+        "is_online": true,
+        "success_rate": payload.get("success_rate").unwrap_or(&serde_json::Value::Number(serde_json::Number::from_f64(85.0).unwrap())),
+        "total_bids": payload.get("total_bids").unwrap_or(&serde_json::Value::Number(serde_json::Number::from(0))),
+        "successful_bids": payload.get("successful_bids").unwrap_or(&serde_json::Value::Number(serde_json::Number::from(0))),
+        "total_energy_bought": payload.get("total_energy_bought").unwrap_or(&serde_json::Value::Number(serde_json::Number::from_f64(0.0).unwrap())),
+        "average_bid_price": payload.get("average_bid_price").unwrap_or(&serde_json::Value::Number(serde_json::Number::from_f64(6.5).unwrap()))
+    });
+    
+    // Broadcast aggregator status event
+    let event = serde_json::json!({
+        "AggregatorStatus": aggregator
+    });
+    
+    let _ = state.event_tx.send(event);
+    
+    axum::Json(serde_json::json!({
+        "status": "success",
+        "message": "Aggregator registered successfully"
+    }))
+}
+
+async fn handle_bess_status(
+    State(state): State<Arc<AppState>>,
+    Json(payload): Json<serde_json::Value>,
+) -> axum::Json<serde_json::Value> {
+    let device_id = payload.get("node_id")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown");
+    
+    info!("🔋 Received BESS status update from {}", device_id);
+    
+    // Update BESS node in state
+    {
+        let mut bess_nodes = state.bess_nodes.write().await;
+        let existing = bess_nodes.get(device_id);
+        
+        if let Some(_) = existing {
+            // Update existing node
+            if let Some(node) = bess_nodes.get_mut(device_id) {
+                node.energy_level = payload.get("energy_level")
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(0.0);
+                node.is_online = payload.get("is_online")
+                    .and_then(|v| v.as_bool())
+                    .unwrap_or(true);
+                node.last_seen = current_timestamp();
+            }
+        } else {
+            // Add new node
+            let new_node = BESSNode {
+                node_id: device_id.to_string(),
+                energy_level: payload.get("energy_level")
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(0.0),
+                capacity_kwh: payload.get("capacity_kwh")
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(20.0),
+                reserve_price: payload.get("reserve_price")
+                    .and_then(|v| v.as_u64())
+                    .unwrap_or(500) as u32,
+                is_online: payload.get("is_online")
+                    .and_then(|v| v.as_bool())
+                    .unwrap_or(true),
+                last_seen: current_timestamp(),
+            };
+            bess_nodes.insert(device_id.to_string(), new_node);
+            info!("✅ Added new BESS node: {}", device_id);
+        }
+    }
+    
+    // Broadcast BESS node status event
+    let event = serde_json::json!({
+        "BESSNodeStatus": payload
+    });
+    let _ = state.event_tx.send(event);
+    
+    axum::Json(serde_json::json!({
+        "status": "success",
+        "message": "BESS status updated successfully"
+    }))
+}
+
+async fn handle_aggregator_status(
+    State(state): State<Arc<AppState>>,
+    Json(payload): Json<serde_json::Value>,
+) -> axum::Json<serde_json::Value> {
+    let device_id = payload.get("aggregator_id")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown");
+    
+    info!("⚡ Received Aggregator status update from {}", device_id);
+    
+    // Update Aggregator in state
+    {
+        let mut aggregators = state.aggregators.write().await;
+        let existing = aggregators.get(device_id);
+        
+        if let Some(_) = existing {
+            // Update existing aggregator
+            if let Some(agg) = aggregators.get_mut(device_id) {
+                agg.is_online = payload.get("is_online")
+                    .and_then(|v| v.as_bool())
+                    .unwrap_or(true);
+                agg.last_seen = current_timestamp();
+            }
+        } else {
+            // Add new aggregator
+            let new_aggregator = Aggregator {
+                aggregator_id: device_id.to_string(),
+                strategy: payload.get("strategy")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("CONSERVATIVE")
+                    .to_string(),
+                total_energy_managed: 0.0,
+                total_revenue: 0.0,
+                is_online: payload.get("is_online")
+                    .and_then(|v| v.as_bool())
+                    .unwrap_or(true),
+                last_seen: current_timestamp(),
+            };
+            aggregators.insert(device_id.to_string(), new_aggregator);
+            info!("✅ Added new Aggregator: {}", device_id);
+        }
+    }
+    
+    // Broadcast Aggregator status event
+    let event = serde_json::json!({
+        "AggregatorStatus": payload
+    });
+    let _ = state.event_tx.send(event);
+    
+    axum::Json(serde_json::json!({
+        "status": "success",
+        "message": "Aggregator status updated successfully"
+    }))
 }

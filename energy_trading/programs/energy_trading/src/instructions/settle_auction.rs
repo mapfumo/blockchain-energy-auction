@@ -67,8 +67,23 @@ pub fn handler(
     // Validate auction belongs to this battery
     require_eq!(auction.battery_id, battery.id, ErrorCode::InvalidBattery);
     
+    // Validate aggregator authority
+    require_eq!(aggregator.authority, ctx.accounts.aggregator_authority.key(), ErrorCode::InvalidAggregator);
+    
+    // Validate energy amount is not zero
+    require!(energy_amount > 0, ErrorCode::InvalidUsdcAmount);
+    
     // Calculate USDC amount (price in cents * energy in kWh)
     let usdc_amount = (final_price * energy_amount) / 100; // Convert cents to dollars
+    
+    // Validate USDC amount is not zero
+    require!(usdc_amount > 0, ErrorCode::InvalidUsdcAmount);
+    
+    // Check aggregator has sufficient USDC balance
+    require!(
+        ctx.accounts.aggregator_usdc_account.amount >= usdc_amount,
+        ErrorCode::InsufficientUsdcBalance
+    );
     
     // Transfer USDC from aggregator to BESS owner
     let transfer_instruction = Transfer {

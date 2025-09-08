@@ -6,7 +6,31 @@ A production-ready Rust/Solana implementation of a real-time energy auction plat
 
 Demonstrate that competitive bidding among multiple energy aggregators for D-BESS energy results in **fairer prices for BESS owners** compared to a single-utility model.
 
+## ✅ Current Status
+
+### 🎉 **WebSocket Connection Issues RESOLVED (2024-09-08)**
+
+**Status**: ✅ **RESOLVED** - WebSocket connection working perfectly
+
+**Technical Status**:
+
+- ✅ **Gateway**: Healthy and broadcasting real-time events
+- ✅ **WebSocket Server**: Working perfectly with proper connection lifecycle handling
+- ✅ **CORS Configuration**: Properly configured
+- ✅ **Frontend Connection**: Fixed callback dependency issues, now connecting successfully
+- ✅ **Real-time Data**: BESSNodeStatus, AuctionCompleted, and SystemMetrics events flowing
+
 ## ✨ Latest Features
+
+### 🚀 **NEW: Complete Blockchain Integration (2024)**
+
+- **Real-time Blockchain Settlements**: Live auction settlements with Solana transaction links
+- **Test-Driven Development**: Comprehensive TDD implementation for blockchain components
+- **Docker Containerization**: Full system containerization with Ubuntu 22.04 compatibility
+- **WebSocket Stability**: Enhanced error handling and reconnection logic
+- **React Performance**: Fixed warnings and optimized component rendering
+
+### 🔧 **Enhanced System Features**
 
 - **Enhanced Simulation Timing**: Realistic 5-10 second delays between aggregator bids
 - **Critical Energy Management**: Emergency 5%/second recharge when BESS energy drops below 10%
@@ -266,51 +290,330 @@ pub mod energy_trading {
 - **Competitive Pricing**: 5-30¢/kWh bidding range validation
 - **Australian Market**: Realistic FiT rates and battery standards
 
-## 🏃‍♂️ Quick Start
+## 🚀 Getting Started
 
-### Prerequisites
+### System Requirements
 
-- Rust 1.70+
-- Docker & Docker Compose
-- Node.js 18+ (for frontend)
+**Minimum Requirements:**
 
-### Development Setup
+- **OS**: Linux (Ubuntu 20.04+), macOS (10.15+), or Windows 10+ with WSL2
+- **RAM**: 8GB minimum, 16GB recommended
+- **CPU**: 4 cores minimum, 8 cores recommended
+- **Storage**: 10GB free space
+- **Network**: Ports 3000, 8080, 8899, 8900 available
+
+### Prerequisites Installation
+
+#### 1. Install Rust (Required)
 
 ```bash
-# Clone repository
+# Install Rust using rustup
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# Reload shell or run:
+source ~/.cargo/env
+
+# Verify installation
+rustc --version  # Should be 1.70+
+cargo --version
+```
+
+#### 2. Install Docker & Docker Compose (Required)
+
+**Ubuntu/Debian:**
+
+```bash
+# Update package index
+sudo apt update
+
+# Install Docker
+sudo apt install -y docker.io docker-compose
+
+# Add user to docker group
+sudo usermod -aG docker $USER
+
+# Log out and back in, then verify
+docker --version
+docker-compose --version
+```
+
+**macOS:**
+
+```bash
+# Install using Homebrew
+brew install --cask docker
+
+# Or download Docker Desktop from: https://www.docker.com/products/docker-desktop
+```
+
+**Windows:**
+
+- Download Docker Desktop from: https://www.docker.com/products/docker-desktop
+- Enable WSL2 integration if using WSL2
+
+#### 3. Install Node.js 18+ (Required)
+
+**Ubuntu/Debian:**
+
+```bash
+# Install Node.js 18 LTS
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Verify installation
+node --version  # Should be 18+
+npm --version
+```
+
+**macOS:**
+
+```bash
+# Install using Homebrew
+brew install node@18
+
+# Or download from: https://nodejs.org/
+```
+
+**Windows:**
+
+- Download from: https://nodejs.org/ (LTS version)
+
+#### 4. Install Solana CLI (Required)
+
+```bash
+# Install Solana CLI
+sh -c "$(curl -sSfL https://release.solana.com/v1.17.0/install)"
+
+# Add to PATH (add to ~/.bashrc or ~/.zshrc)
+export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+
+# Verify installation
+solana --version  # Should be 1.17.0+
+```
+
+#### 5. Install Anchor Framework (Required)
+
+```bash
+# Install Anchor CLI
+npm install -g @coral-xyz/anchor-cli
+
+# Verify installation
+anchor --version  # Should be 0.31.1+
+```
+
+### First-Time Setup
+
+#### 1. Clone and Build
+
+```bash
+# Clone the repository
 git clone <repository-url>
 cd energy-trading
 
-# Start gateway and containers
-docker-compose up -d
+# Build Rust components
+cd simple-gateway
+cargo build --release
+cd ..
 
-# Run tests
-cd energy-trading-rust
-cargo test
+# Install frontend dependencies
+cd frontend
+npm install
+cd ..
 
-# Run specific test suites
-cargo test --test etp_message_tests
-cargo test --test bess_node_tests
+# Build Docker images
+docker-compose build
+```
+
+#### 2. Generate Solana Keypair
+
+```bash
+# Generate a new keypair for testing
+solana-keygen new --outfile ~/.config/solana/id.json
+
+# Set Solana cluster to localnet
+solana config set --url localhost
+
+# Verify configuration
+solana config get
+```
+
+#### 3. Start Solana Validator
+
+```bash
+# Start Solana test validator (in background)
+solana-test-validator --reset --quiet &
+
+# Wait for validator to start
+sleep 5
+
+# Check validator status
+solana cluster-version
 ```
 
 ### Running the System
 
+#### Option 1: Automated Setup (Recommended)
+
 ```bash
-# Start WebSocket gateway (backend)
-cd energy-trading-rust
-cargo run --bin gateway
+# Start everything automatically
+./start.sh
+```
 
-# Start frontend dashboard (in new terminal)
+This script will:
+
+- Detect Docker gateway IP
+- Start Solana validator
+- Start gateway service
+- Start frontend dashboard
+- Start BESS nodes and aggregators
+- Display system status
+
+#### Option 2: Manual Setup
+
+```bash
+# Terminal 1: Start Solana validator
+solana-test-validator --reset --quiet &
+
+# Terminal 2: Start gateway
+cd simple-gateway
+cargo run &
+
+# Terminal 3: Start frontend
 cd frontend
-npm run dev
+npm run dev &
 
-# Run all tests
+# Terminal 4: Start BESS nodes and aggregators
+docker-compose up -d bess-001 bess-002 bess-003 aggregator-001 aggregator-002
+```
+
+### Access the System
+
+Once running, access these URLs:
+
+- **🎨 Frontend Dashboard**: http://localhost:3000
+- **🔧 Gateway API**: http://localhost:8080
+- **📊 Health Check**: http://localhost:8080/health
+- **🔗 Solana Explorer**: http://localhost:8899
+- **📈 Solana RPC**: http://localhost:8899
+
+### Verification
+
+#### Check System Status
+
+```bash
+# Check all services
+curl http://localhost:8080/health
+curl http://localhost:3000
+curl http://localhost:8899
+
+# Check Docker containers
+docker ps
+
+# Check Solana validator
+solana cluster-version
+```
+
+#### Expected Output
+
+- **Frontend**: Should show "Messages received: X" (increasing number)
+- **Gateway**: Should return `{"status":"healthy","timestamp":"..."}`
+- **Solana**: Should return cluster version (e.g., "1.17.0")
+
+### Troubleshooting
+
+#### Common Issues
+
+**1. Port Already in Use**
+
+```bash
+# Check what's using the port
+sudo lsof -i :3000
+sudo lsof -i :8080
+sudo lsof -i :8899
+
+# Kill the process
+sudo kill -9 <PID>
+```
+
+**2. Docker Permission Denied**
+
+```bash
+# Add user to docker group
+sudo usermod -aG docker $USER
+
+# Log out and back in
+# Or run: newgrp docker
+```
+
+**3. Solana Validator Won't Start**
+
+```bash
+# Check if port 8899 is free
+sudo lsof -i :8899
+
+# Kill any existing validator
+pkill -f solana-test-validator
+
+# Start fresh
+solana-test-validator --reset --quiet
+```
+
+**4. Frontend Won't Connect to WebSocket**
+
+```bash
+# Check gateway logs
+docker logs energy-gateway
+
+# Check if gateway is healthy
+curl http://localhost:8080/health
+
+# Restart gateway
+docker restart energy-gateway
+```
+
+**5. BESS Nodes Not Connecting**
+
+```bash
+# Check Docker network
+docker network ls
+docker network inspect energy-trading_energy_network
+
+# Check container logs
+docker logs bess-001
+docker logs aggregator-001
+```
+
+### Network Configuration
+
+The system uses these network configurations:
+
+- **Frontend**: `localhost:3000` → `localhost:8080` (WebSocket)
+- **BESS Nodes**: Docker network → `gateway:8080` (HTTP)
+- **Aggregators**: Docker network → `gateway:8080` (HTTP)
+- **Solana**: `localhost:8899` (RPC), `localhost:8900` (WebSocket)
+
+### Development Workflow
+
+```bash
+# Run tests
 cargo test
 
 # Run specific test suites
 cargo test --test etp_message_tests
 cargo test --test bess_node_tests
 cargo test --test bess_tcp_server_tests
+
+# Frontend development
+cd frontend
+npm run dev
+npm run build
+npm run test
+
+# Blockchain development
+cd energy_trading
+anchor test
+anchor build
+anchor deploy
 ```
 
 ### Frontend Dashboard

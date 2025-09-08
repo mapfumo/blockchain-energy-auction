@@ -1,7 +1,7 @@
 version: "3.8"
 
 services:
-  # Energy Trading Gateway (Orchestrator)
+  # Energy Trading Gateway (Orchestrator) - Now in Docker
   gateway:
     build:
       context: ./simple-gateway
@@ -14,6 +14,13 @@ services:
     environment:
       - RUST_LOG=info
     command: ["/app/simple-gateway"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   # Frontend Dashboard - Run locally instead of in Docker
   # Run with: cd frontend && npm install && npm run dev
@@ -52,7 +59,7 @@ services:
       - NODE_TYPE=BESS
       - CAPACITY_KWH=15
       - INITIAL_ENERGY=12.5
-      - GATEWAY_HOST=energy-gateway
+      - GATEWAY_HOST=gateway
       - GATEWAY_PORT=8080
       - MULTICAST_GROUP=224.0.0.1
       - MULTICAST_PORT=8888
@@ -73,7 +80,7 @@ services:
       - NODE_TYPE=BESS
       - CAPACITY_KWH=20
       - INITIAL_ENERGY=18.0
-      - GATEWAY_HOST=energy-gateway
+      - GATEWAY_HOST=gateway
       - GATEWAY_PORT=8080
       - MULTICAST_GROUP=224.0.0.1
       - MULTICAST_PORT=8888
@@ -94,7 +101,7 @@ services:
       - NODE_TYPE=BESS
       - CAPACITY_KWH=10
       - INITIAL_ENERGY=8.5
-      - GATEWAY_HOST=energy-gateway
+      - GATEWAY_HOST=gateway
       - GATEWAY_PORT=8080
       - MULTICAST_GROUP=224.0.0.1
       - MULTICAST_PORT=8888
@@ -115,7 +122,7 @@ services:
       - NODE_TYPE=AGGREGATOR
       - STRATEGY=CONSERVATIVE
       - MAX_BID_PRICE=800
-      - GATEWAY_HOST=energy-gateway
+      - GATEWAY_HOST=gateway
       - GATEWAY_PORT=8080
       - MULTICAST_GROUP=224.0.0.1
       - MULTICAST_PORT=8888
@@ -136,7 +143,7 @@ services:
       - NODE_TYPE=AGGREGATOR
       - STRATEGY=AGGRESSIVE
       - MAX_BID_PRICE=1200
-      - GATEWAY_HOST=energy-gateway
+      - GATEWAY_HOST=gateway
       - GATEWAY_PORT=8080
       - MULTICAST_GROUP=224.0.0.1
       - MULTICAST_PORT=8888

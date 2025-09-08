@@ -199,12 +199,12 @@ export const BESSNodeMap: React.FC<BESSNodeMapProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {aggregators.map((aggregator) => (
                 <div
-                  key={aggregator.aggregator_id}
+                  key={aggregator.device_id}
                   className="border border-gray-200 rounded-lg p-4"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="text-lg font-medium text-gray-900">
-                      AGG-{aggregator.aggregator_id}
+                      AGG-{aggregator.device_id}
                     </h3>
                     <span
                       className={`px-2 py-1 text-xs font-medium rounded-full ${

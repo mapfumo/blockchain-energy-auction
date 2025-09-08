@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>WebSocket Debug Test</title>
+  </head>
+  <body>
+    <h1>WebSocket Debug Test</h1>
+    <div id="status">Connecting...</div>
+    <div id="messages"></div>
+
+    <script>
+      const status = document.getElementById("status");
+      const messages = document.getElementById("messages");
+
+      function addMessage(msg) {
+        const div = document.createElement("div");
+        div.textContent = new Date().toISOString() + ": " + msg;
+        messages.appendChild(div);
+        console.log(msg);
+      }
+
+      addMessage("Starting WebSocket connection test...");
+
+      const ws = new WebSocket("ws://localhost:8080/ws");
+
+      ws.onopen = function (event) {
+        addMessage("✅ WebSocket connected successfully!");
+        status.textContent = "Connected";
+        status.style.color = "green";
+      };
+
+      ws.onmessage = function (event) {
+        addMessage("📨 Received: " + event.data);
+      };
+
+      ws.onerror = function (error) {
+        addMessage("❌ WebSocket error: " + error);
+        status.textContent = "Error";
+        status.style.color = "red";
+      };
+
+      ws.onclose = function (event) {
+        addMessage("🔌 WebSocket closed: " + event.code + " - " + event.reason);
+        status.textContent = "Closed";
+        status.style.color = "orange";
+      };
+
+      // Test sending a message after 2 seconds
+      setTimeout(() => {
+        if (ws.readyState === WebSocket.OPEN) {
+          addMessage("📤 Sending test message...");
+          ws.send(
+            JSON.stringify({ type: "test", message: "Hello from browser" })
+          );
+        } else {
+          addMessage("❌ Cannot send message - WebSocket not open");
+        }
+      }, 2000);
+
+      // Close connection after 10 seconds
+      setTimeout(() => {
+        addMessage("🔌 Closing WebSocket connection...");
+        ws.close();
+      }, 10000);
+    </script>
+  </body>
+</html>

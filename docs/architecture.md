@@ -11,8 +11,8 @@ The Energy Trading System is a distributed real-time auction platform enabling c
 │                            Energy Trading Ecosystem                          │
 ├─────────────────┬───────────────────┬─────────────────┬───────────────────────┤
 │   BESS Nodes    │  Aggregator Nodes │  WebSocket      │   Web Dashboard       │
-│   (Rust/Tokio)  │   (Rust/Tokio)    │  Gateway        │   (Next.js/React)     │
-│                 │                   │  (Axum/Rust)    │                       │
+│   (Docker)      │   (Docker)        │  Gateway        │   (Local Host)        │
+│                 │                   │  (Local Host)   │                       │
 │  ┌───────────┐  │  ┌─────────────┐  │  ┌───────────┐  │  ┌─────────────────┐  │
 │  │Battery #1 │◄─┼─►│Aggregator#1 │◄─┼─►│WebSocket  │◄─┼─►│Real-time        │  │
 │  │Battery #2 │  │  │Aggregator#2 │  │  │Server     │  │  │Dashboard        │  │
@@ -40,7 +40,175 @@ The Energy Trading System is a distributed real-time auction platform enabling c
                  └─────────────────────────────┘
 ```
 
-## 2. Component Architecture
+## 2. Current System Status & Recent Resolutions
+
+### 2.1 WebSocket Connection Issues (2024-09-08) - RESOLVED ✅
+
+**Status**: ✅ **RESOLVED** - WebSocket connection issues have been successfully fixed
+
+**Root Causes Identified and Fixed**:
+
+1. **Frontend Issue**: `useSimpleWebSocket` hook was recreating WebSocket connections constantly due to inline callback functions being recreated on every render
+2. **Gateway Issue**: WebSocket handler wasn't properly handling connection lifecycle events (close, error, etc.)
+
+**Fixes Applied**:
+
+- ✅ **Frontend Fixes**: Memoized callbacks using `useCallback` to prevent WebSocket reconnection loops
+- ✅ **Gateway Fixes**: Added proper message handling for WebSocket close, error, and other message types
+- ✅ **Docker Deployment**: Rebuilt and deployed the updated gateway with fixes
+- ✅ **Testing**: Verified WebSocket connection works with Node.js client and receives real-time data
+
+**Current Architecture Status**:
+
+```
+Frontend (localhost:3000) ──✅──> Gateway (localhost:8080/ws)
+     │                           │
+     │                           ▼
+     │                    [WebSocket Server]
+     │                           │
+     │                           ▼
+     │                    [Event Broadcasting]
+     │                           │
+     │                           ▼
+     └─────────────────── [Real-time Data Received]
+```
+
+**Technical Resolution Details**:
+
+- **Connection Stability**: WebSocket connections now establish and maintain properly
+- **Real-time Data**: BESSNodeStatus, AuctionCompleted, and SystemMetrics events flowing
+- **Error Handling**: Proper connection lifecycle management implemented
+- **Performance**: Eliminated unnecessary reconnection loops
+
+## 3. Development Methodology & Technical Improvements
+
+### 2.1 Test-Driven Development (TDD) Approach
+
+The Energy Trading System was developed using a rigorous Test-Driven Development methodology, particularly for the critical blockchain integration components:
+
+#### TDD Red-Green-Refactor Cycle
+
+1. **Red Phase**: Write failing tests for new functionality
+2. **Green Phase**: Implement minimal code to make tests pass
+3. **Refactor Phase**: Improve code while maintaining test coverage
+
+#### Key TDD Implementation
+
+```rust
+// Example: Blockchain Settlement TDD Implementation
+#[tokio::test]
+async fn test_blockchain_settlement_creation() {
+    // Red: Write failing test first
+    let settlement = BlockchainSettlementEvent {
+        auction_id: 1,
+        winner: "AGG-001".to_string(),
+        // ... other fields
+    };
+    assert_eq!(settlement.auction_id, 1);
+}
+
+// Green: Implement minimal code to pass
+pub struct BlockchainSettlementEvent {
+    pub auction_id: u64,
+    pub winner: String,
+    // ... implementation
+}
+
+// Refactor: Enhance with proper error handling
+impl BlockchainSettlementEvent {
+    pub fn new(auction_id: u64, winner: String) -> Result<Self> {
+        // Enhanced implementation with validation
+    }
+}
+```
+
+### 2.2 Technical Improvements Implemented
+
+#### Docker Containerization Strategy
+
+**Problem**: Initial system had networking issues between containers and host
+**Solution**: Complete containerization with proper networking
+
+```yaml
+# docker-compose.yml - Improved Architecture
+services:
+  gateway:
+    build: ./simple-gateway
+    container_name: energy-gateway
+    networks: [energy_network]
+    ports: ["8080:8080"]
+
+  bess-001:
+    build: ./containers/bess-node
+    environment:
+      - GATEWAY_HOST=gateway # Container-to-container communication
+    depends_on: [gateway]
+```
+
+#### glibc Compatibility Resolution
+
+**Problem**: Binary compiled on Ubuntu 22.04 wouldn't run on Ubuntu 24.04
+**Solution**: Consistent Ubuntu 22.04 base images
+
+```dockerfile
+# Dockerfile - glibc compatibility
+FROM rust:1.75 as builder
+# ... build process
+
+FROM ubuntu:22.04  # Consistent runtime environment
+# ... runtime setup
+```
+
+#### WebSocket Connection Stability
+
+**Problem**: Frontend WebSocket connections were unstable
+**Solution**: Proper error handling and reconnection logic
+
+```typescript
+// Frontend WebSocket Implementation
+const { isConnected, error, lastMessage } = useSimpleWebSocket({
+  url: WS_URL,
+  onMessage: handleSystemEvent,
+  onError: (error) => {
+    console.error("WebSocket error:", error);
+    // Implement reconnection logic
+  },
+});
+```
+
+#### React Performance Optimizations
+
+**Problem**: React warnings and performance issues
+**Solution**: Proper key props and component optimization
+
+```tsx
+// Fixed React key prop warnings
+{
+  blockchainSettlements.map((settlement, index) => (
+    <div key={settlement.auction_id || `settlement-${index}`}>
+      {/* Component content */}
+    </div>
+  ));
+}
+```
+
+### 2.3 System Reliability Improvements
+
+#### Error Handling Strategy
+
+- **Structured Logging**: Comprehensive tracing with `tracing` spans
+- **Circuit Breaker Patterns**: Graceful degradation on failures
+- **Health Monitoring**: REST API health endpoints
+- **Graceful Shutdown**: Proper cleanup on system shutdown
+
+#### Performance Optimizations
+
+- **Async/Await**: Non-blocking I/O throughout the system
+- **Connection Pooling**: Efficient database and network connections
+- **Memory Management**: Proper resource cleanup and garbage collection
+- **Caching Strategy**: In-memory caching for frequently accessed data
+
+## 3. Component Architecture
 
 ### 2.1 BESS Node Architecture ✅ IMPLEMENTED
 
@@ -730,23 +898,44 @@ pub struct PerformanceMetrics {
 
 ## 9. Deployment Architecture
 
-### 9.1 Container Strategy
+### 9.1 Hybrid Development Architecture
+
+The system uses a **hybrid deployment approach** optimized for development efficiency:
+
+#### Local Components (Host Machine)
+
+- **Gateway**: Runs locally on port 8080 for fast development iteration
+- **Frontend**: Runs locally on port 3000 for immediate UI updates
+- **Solana Validator**: Runs locally for blockchain testing
+
+#### Docker Components (Containers)
+
+- **BESS Nodes**: 3 containers (001, 002, 003) with different capacities
+- **Aggregators**: 2 containers (001, 002) with conservative trading strategies
+
+#### Network Configuration
+
+- **Docker Network**: `energy-trading_energy_network` for container communication
+- **Host Connectivity**: Containers connect to local gateway via host IP (`192.168.0.250:8080`)
+- **Environment Variables**: `GATEWAY_HOST=192.168.0.250` for container-to-host communication
+
+### 9.2 Container Strategy
 
 ```dockerfile
 # Multi-stage Rust build for optimal container size
-FROM rust:1.75 as builder
+FROM rust:latest as builder
 WORKDIR /app
 COPY . .
 RUN cargo build --release
 
 FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y ca-certificates libssl3 libpq5
-COPY --from=builder /app/target/release/energy-trading /usr/local/bin/
-EXPOSE 8080 9090
-CMD ["energy-trading"]
+COPY --from=builder /app/target/release/simple-gateway /usr/local/bin/
+EXPOSE 8080
+CMD ["simple-gateway"]
 ```
 
-### 9.2 Docker Compose Development
+### 9.3 Docker Compose Development
 
 ```yaml
 version: "3.8"

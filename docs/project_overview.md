@@ -27,8 +27,8 @@ Based on the academic paper "Communication requirements for enabling real-time e
 │                            Energy Trading Ecosystem                          │
 ├─────────────────┬───────────────────┬─────────────────┬───────────────────────┤
 │   BESS Nodes    │  Aggregator Nodes │  WebSocket      │   Web Dashboard       │
-│   (Rust/Tokio)  │   (Rust/Tokio)    │  Gateway        │   (Next.js/React)     │
-│                 │                   │  (Axum/Rust)    │                       │
+│   (Docker)      │   (Docker)        │  Gateway        │   (Local Host)        │
+│                 │                   │  (Local Host)   │                       │
 │  ┌───────────┐  │  ┌─────────────┐  │  ┌───────────┐  │  ┌─────────────────┐  │
 │  │Battery #1 │◄─┼─►│Aggregator#1 │◄─┼─►│WebSocket  │◄─┼─►│Real-time        │  │
 │  │Battery #2 │  │  │Aggregator#2 │  │  │Server     │  │  │Dashboard        │  │
@@ -369,6 +369,45 @@ Test-Driven Development is essential for this project due to:
 2. **Integration Testing**: End-to-end auction flows with multiple aggregators
 3. **Performance Testing**: Load testing for 1000+ messages/second
 4. **Blockchain Integration**: Connect Rust backend to Solana smart contracts
+
+## Deployment Architecture
+
+### Hybrid Development Setup
+
+The system uses a **hybrid deployment approach** optimized for development efficiency:
+
+#### Local Components (Host Machine)
+
+- **Gateway**: Runs locally on port 8080 for fast development iteration
+- **Frontend**: Runs locally on port 3000 for immediate UI updates
+- **Solana Validator**: Runs locally for blockchain testing
+
+#### Docker Components (Containers)
+
+- **BESS Nodes**: 3 containers (001, 002, 003) with different capacities
+- **Aggregators**: 2 containers (001, 002) with conservative trading strategies
+
+#### Network Configuration
+
+- **Docker Network**: `energy-trading_energy_network` for container communication
+- **Host Connectivity**: Containers connect to local gateway via host IP (`192.168.0.250:8080`)
+- **Environment Variables**: `GATEWAY_HOST=192.168.0.250` for container-to-host communication
+
+#### Benefits of Hybrid Approach
+
+- **Fast Development**: No Docker rebuilds for gateway changes
+- **Real-time Updates**: Immediate frontend and gateway updates
+- **Container Isolation**: BESS nodes and aggregators remain containerized
+- **Network Simplicity**: Avoids Docker Compose networking issues
+
+#### Production Considerations
+
+For production deployment, all components should run in containers with:
+
+- Proper service discovery
+- Load balancing
+- Health checks
+- Monitoring and logging
 
 ## Future Considerations
 

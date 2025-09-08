@@ -81,7 +81,7 @@ pub struct InitializeAuction<'info> {
     #[account(
         init,
         payer = payer,
-        space = 8 + 8 + 4 + 4 + 8 + 8 + 8 + 1 + 8 + 1, // Auction size
+        space = Auction::LEN,
         seeds = [b"auction", &auction_id.to_le_bytes()[..]],
         bump
     )]
@@ -101,6 +101,9 @@ pub fn initialize_auction(
     energy_amount: u64,
     reserve_price: u64,
 ) -> Result<()> {
+    let clock = Clock::get()?;
+    let current_timestamp = clock.unix_timestamp;
+    
     let auction = &mut ctx.accounts.auction;
     auction.id = auction_id;
     auction.aggregator_id = ctx.accounts.aggregator.id;
@@ -110,7 +113,9 @@ pub fn initialize_auction(
     auction.final_price = None;
     auction.usdc_amount = None;
     auction.settled = false;
+    auction.created_at = current_timestamp;
     auction.settled_at = None;
+    auction.blockchain_tx_hash = None;
 
     msg!("Initialized auction {} for aggregator {} and battery {}", 
          auction_id, ctx.accounts.aggregator.id, ctx.accounts.battery.id);

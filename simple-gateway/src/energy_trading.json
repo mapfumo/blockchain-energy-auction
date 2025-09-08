@@ -1,0 +1,598 @@
+{
+  "address": "4wEDVLBid4pKiXzkq8hT6zEWU9F62nDibPS38d2QSrJb",
+  "metadata": {
+    "name": "energy_trading",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "initialize",
+      "discriminator": [
+        175,
+        175,
+        109,
+        31,
+        13,
+        152,
+        155,
+        237
+      ],
+      "accounts": [],
+      "args": []
+    },
+    {
+      "name": "initialize_aggregator",
+      "discriminator": [
+        18,
+        61,
+        65,
+        56,
+        183,
+        249,
+        178,
+        71
+      ],
+      "accounts": [
+        {
+          "name": "aggregator",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  103,
+                  114,
+                  101,
+                  103,
+                  97,
+                  116,
+                  111,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initialize_auction",
+      "discriminator": [
+        37,
+        10,
+        117,
+        197,
+        208,
+        88,
+        117,
+        62
+      ],
+      "accounts": [
+        {
+          "name": "auction",
+          "writable": true
+        },
+        {
+          "name": "aggregator",
+          "writable": true
+        },
+        {
+          "name": "battery",
+          "writable": true
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "auction_id",
+          "type": "u64"
+        },
+        {
+          "name": "energy_amount",
+          "type": "u64"
+        },
+        {
+          "name": "reserve_price",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "initialize_battery",
+      "discriminator": [
+        251,
+        229,
+        8,
+        101,
+        189,
+        105,
+        17,
+        80
+      ],
+      "accounts": [
+        {
+          "name": "battery",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  97,
+                  116,
+                  116,
+                  101,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "settle_auction",
+      "discriminator": [
+        246,
+        196,
+        183,
+        98,
+        222,
+        139,
+        46,
+        133
+      ],
+      "accounts": [
+        {
+          "name": "auction",
+          "writable": true
+        },
+        {
+          "name": "aggregator",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  103,
+                  114,
+                  101,
+                  103,
+                  97,
+                  116,
+                  111,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "aggregator.authority",
+                "account": "Aggregator"
+              }
+            ]
+          }
+        },
+        {
+          "name": "battery",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  97,
+                  116,
+                  116,
+                  101,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "battery.owner",
+                "account": "Battery"
+              }
+            ]
+          }
+        },
+        {
+          "name": "aggregator_usdc_account",
+          "docs": [
+            "Aggregator's USDC token account (payer)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "battery_owner_usdc_account",
+          "docs": [
+            "BESS owner's USDC token account (receiver)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "usdc_mint",
+          "docs": [
+            "USDC mint account"
+          ]
+        },
+        {
+          "name": "aggregator_authority",
+          "docs": [
+            "Aggregator's authority"
+          ],
+          "signer": true
+        },
+        {
+          "name": "token_program",
+          "docs": [
+            "Token program"
+          ],
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "docs": [
+            "System program"
+          ],
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "auction_id",
+          "type": "u64"
+        },
+        {
+          "name": "energy_amount",
+          "type": "u64"
+        },
+        {
+          "name": "final_price",
+          "type": "u64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Aggregator",
+      "discriminator": [
+        206,
+        139,
+        113,
+        148,
+        163,
+        34,
+        44,
+        187
+      ]
+    },
+    {
+      "name": "Auction",
+      "discriminator": [
+        218,
+        94,
+        247,
+        242,
+        126,
+        233,
+        131,
+        81
+      ]
+    },
+    {
+      "name": "Battery",
+      "discriminator": [
+        10,
+        121,
+        15,
+        30,
+        15,
+        72,
+        227,
+        81
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "AuctionSettled",
+      "discriminator": [
+        61,
+        151,
+        131,
+        170,
+        95,
+        203,
+        219,
+        147
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "AuctionAlreadySettled",
+      "msg": "Auction has already been settled"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidAggregator",
+      "msg": "Invalid aggregator for this auction"
+    },
+    {
+      "code": 6002,
+      "name": "InvalidBattery",
+      "msg": "Invalid battery for this auction"
+    },
+    {
+      "code": 6003,
+      "name": "InsufficientUsdcBalance",
+      "msg": "Insufficient USDC balance"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidUsdcAmount",
+      "msg": "Invalid USDC amount"
+    },
+    {
+      "code": 6005,
+      "name": "AuctionNotFound",
+      "msg": "Auction not found"
+    },
+    {
+      "code": 6006,
+      "name": "UnauthorizedAccess",
+      "msg": "Unauthorized access"
+    }
+  ],
+  "types": [
+    {
+      "name": "Aggregator",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "id",
+            "type": "u32"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "reputation_score",
+            "type": "u8"
+          },
+          {
+            "name": "successful_settlements",
+            "type": "u32"
+          },
+          {
+            "name": "total_energy_traded",
+            "type": "u64"
+          },
+          {
+            "name": "total_usdc_paid",
+            "type": "u64"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "last_activity",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Auction",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "id",
+            "type": "u64"
+          },
+          {
+            "name": "aggregator_id",
+            "type": "u32"
+          },
+          {
+            "name": "battery_id",
+            "type": "u32"
+          },
+          {
+            "name": "energy_amount",
+            "type": "u64"
+          },
+          {
+            "name": "reserve_price",
+            "type": "u64"
+          },
+          {
+            "name": "final_price",
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "usdc_amount",
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "settled",
+            "type": "bool"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "settled_at",
+            "type": {
+              "option": "i64"
+            }
+          },
+          {
+            "name": "blockchain_tx_hash",
+            "type": {
+              "option": "string"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "AuctionSettled",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "auction_id",
+            "type": "u64"
+          },
+          {
+            "name": "aggregator_id",
+            "type": "u32"
+          },
+          {
+            "name": "battery_id",
+            "type": "u32"
+          },
+          {
+            "name": "energy_amount",
+            "type": "u64"
+          },
+          {
+            "name": "final_price",
+            "type": "u64"
+          },
+          {
+            "name": "usdc_amount",
+            "type": "u64"
+          },
+          {
+            "name": "settled_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Battery",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "id",
+            "type": "u32"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "device_id",
+            "type": "u32"
+          },
+          {
+            "name": "capacity_kwh",
+            "type": "u32"
+          },
+          {
+            "name": "total_energy_sold",
+            "type": "u64"
+          },
+          {
+            "name": "total_usdc_earned",
+            "type": "u64"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "last_sale_at",
+            "type": {
+              "option": "i64"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "constants": [
+    {
+      "name": "SEED",
+      "type": "string",
+      "value": "\"anchor\""
+    }
+  ]
+}

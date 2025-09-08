@@ -27,6 +27,6 @@ impl Auction {
         1 + // settled
         8 + // created_at
         1 + 8 + // settled_at (Option<i64>)
-        1 + 4 + 88 + // blockchain_tx_hash (Option<String>)
+        1 + 4 + 64 + // blockchain_tx_hash (Option<String> with max 64 chars)
         32; // padding
 }

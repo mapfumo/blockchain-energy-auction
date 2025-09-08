@@ -1,0 +1,14 @@
+/home/tony/Desktop/energy-trading/mcp-server/target/debug/deps/libscroll-0c02fa54b087eb10.rmeta: /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scroll-0.11.0/src/lib.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scroll-0.11.0/src/ctx.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scroll-0.11.0/src/endian.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scroll-0.11.0/src/error.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scroll-0.11.0/src/greater.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scroll-0.11.0/src/leb128.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scroll-0.11.0/src/lesser.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scroll-0.11.0/src/pread.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scroll-0.11.0/src/pwrite.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scroll-0.11.0/src/../README.md
+
+/home/tony/Desktop/energy-trading/mcp-server/target/debug/deps/scroll-0c02fa54b087eb10.d: /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scroll-0.11.0/src/lib.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scroll-0.11.0/src/ctx.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scroll-0.11.0/src/endian.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scroll-0.11.0/src/error.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scroll-0.11.0/src/greater.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scroll-0.11.0/src/leb128.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scroll-0.11.0/src/lesser.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scroll-0.11.0/src/pread.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scroll-0.11.0/src/pwrite.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scroll-0.11.0/src/../README.md
+
+/home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scroll-0.11.0/src/lib.rs:
+/home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scroll-0.11.0/src/ctx.rs:
+/home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scroll-0.11.0/src/endian.rs:
+/home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scroll-0.11.0/src/error.rs:
+/home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scroll-0.11.0/src/greater.rs:
+/home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scroll-0.11.0/src/leb128.rs:
+/home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scroll-0.11.0/src/lesser.rs:
+/home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scroll-0.11.0/src/pread.rs:
+/home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scroll-0.11.0/src/pwrite.rs:
+/home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scroll-0.11.0/src/../README.md:

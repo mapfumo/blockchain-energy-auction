@@ -36,10 +36,12 @@ export const useSimpleWebSocket = ({
 
   const connect = useCallback(() => {
     try {
+      console.log("🔌 Attempting WebSocket connection to:", url);
       const ws = new WebSocket(url);
       wsRef.current = ws;
 
       ws.onopen = () => {
+        console.log("✅ WebSocket connected successfully");
         setIsConnected(true);
         setError(null);
         onOpenRef.current?.();
@@ -56,12 +58,14 @@ export const useSimpleWebSocket = ({
         }
       };
 
-      ws.onclose = () => {
+      ws.onclose = (event) => {
+        console.log("🔌 WebSocket closed:", event.code, event.reason);
         setIsConnected(false);
         onCloseRef.current?.();
       };
 
       ws.onerror = (error) => {
+        console.error("❌ WebSocket error:", error);
         setError("WebSocket connection error");
         setIsConnected(false);
         onErrorRef.current?.(error);
@@ -89,7 +93,7 @@ export const useSimpleWebSocket = ({
   useEffect(() => {
     connect();
     return () => disconnect();
-  }, [url]);
+  }, [connect, disconnect]);
 
   return {
     isConnected,

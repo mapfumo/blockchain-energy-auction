@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useSimpleWebSocket } from "../hooks/useSimpleWebSocket";
 import {
   SystemEvent,
@@ -48,6 +48,18 @@ export const Dashboard: React.FC = () => {
   const [selectedAggregator, setSelectedAggregator] =
     useState<AggregatorNode | null>(null);
   const [showHelp, setShowHelp] = useState(false);
+  const [blockchainSettlements, setBlockchainSettlements] = useState<
+    Array<{
+      auction_id: number;
+      winner: string;
+      seller: string;
+      energy_amount: number;
+      final_price: number;
+      total_value: number;
+      settlement_signature?: string;
+      timestamp: string;
+    }>
+  >([]);
 
   // Keyboard shortcuts
   useKeyboardShortcuts({
@@ -66,20 +78,29 @@ export const Dashboard: React.FC = () => {
     },
   });
 
+  // Memoize callbacks to prevent WebSocket reconnection
+  const onWebSocketMessage = useCallback((event: any) => {
+    handleSystemEvent(event);
+  }, []);
+
+  const onWebSocketOpen = useCallback(() => {
+    console.log("WebSocket connected");
+  }, []);
+
+  const onWebSocketClose = useCallback(() => {
+    console.log("WebSocket disconnected");
+  }, []);
+
+  const onWebSocketError = useCallback((error: any) => {
+    console.error("WebSocket error:", error);
+  }, []);
+
   const { isConnected, error, lastMessage, sendMessage } = useSimpleWebSocket({
     url: WS_URL,
-    onMessage: (event: any) => {
-      handleSystemEvent(event);
-    },
-    onOpen: () => {
-      // WebSocket connected
-    },
-    onClose: () => {
-      // WebSocket disconnected
-    },
-    onError: (error) => {
-      console.error("WebSocket error:", error);
-    },
+    onMessage: onWebSocketMessage,
+    onOpen: onWebSocketOpen,
+    onClose: onWebSocketClose,
+    onError: onWebSocketError,
   });
 
   // Create connection object for compatibility
@@ -93,6 +114,10 @@ export const Dashboard: React.FC = () => {
   const handleSystemEvent = (event: any) => {
     try {
       setMessageCount((prev) => prev + 1);
+      console.log("📡 Received event:", event.type || "unknown", event);
+      console.log("🔍 Event keys:", Object.keys(event));
+      console.log("🔍 BESSNodeStatus:", event.BESSNodeStatus);
+      console.log("🔍 AggregatorStatus:", event.AggregatorStatus);
 
       // Handle INITIAL_DATA message from gateway
       if (event.type === "INITIAL_DATA") {
@@ -248,6 +273,40 @@ export const Dashboard: React.FC = () => {
             return auction;
           })
         );
+
+        // Add to blockchain settlements if blockchain settlement is pending
+        if (completedData.blockchain_settlement === "pending") {
+          setBlockchainSettlements((prev) => [
+            {
+              auction_id: completedData.auction_id,
+              winner: completedData.winner,
+              seller: completedData.seller,
+              energy_amount: completedData.energy_amount,
+              final_price: completedData.final_price,
+              total_value: completedData.total_value,
+              settlement_signature: "Processing...",
+              timestamp: new Date().toLocaleTimeString(),
+            },
+            ...prev.slice(0, 9), // Keep last 10 settlements
+          ]);
+        }
+      } else if (event.type === "BlockchainSettlement") {
+        // Handle blockchain settlement events
+        console.log("🔗 Received BlockchainSettlement event:", event);
+        const settlementData = event.data;
+        setBlockchainSettlements((prev) => [
+          {
+            auction_id: settlementData.auction_id,
+            winner: settlementData.winner,
+            seller: settlementData.seller,
+            energy_amount: settlementData.energy_amount,
+            final_price: settlementData.final_price,
+            total_value: settlementData.total_value,
+            settlement_signature: settlementData.settlement_signature,
+            timestamp: new Date().toLocaleTimeString(),
+          },
+          ...prev.slice(0, 9), // Keep last 10 settlements
+        ]);
       } else if (event.SystemMetrics) {
         setSystemMetrics(event.SystemMetrics);
       } else if (event.BESSNodeStatus) {
@@ -287,32 +346,37 @@ export const Dashboard: React.FC = () => {
         });
       } else if (event.AggregatorStatus) {
         setAggregators((prev) => {
+          const device_id =
+            event.AggregatorStatus.aggregator_id ||
+            event.AggregatorStatus.device_id;
           const existingIndex = prev.findIndex(
-            (agg) => agg.device_id === event.AggregatorStatus.device_id
+            (agg) => agg.device_id === device_id
           );
           if (existingIndex >= 0) {
             const updated = [...prev];
             updated[existingIndex] = {
               ...updated[existingIndex],
               is_online: event.AggregatorStatus.is_online,
-              success_rate: event.AggregatorStatus.success_rate,
-              total_bids: event.AggregatorStatus.total_bids,
-              successful_bids: event.AggregatorStatus.successful_bids,
-              total_energy_bought: event.AggregatorStatus.total_energy_bought,
+              success_rate: event.AggregatorStatus.success_rate || 0,
+              total_bids: event.AggregatorStatus.total_bids || 0,
+              successful_bids: event.AggregatorStatus.successful_bids || 0,
+              total_energy_bought:
+                event.AggregatorStatus.total_energy_bought || 0,
               average_bid_price: event.AggregatorStatus.average_bid_price || 0,
               last_updated: new Date().toISOString(),
             };
             return updated;
           } else {
             const newAggregator: AggregatorNode = {
-              device_id: event.AggregatorStatus.device_id,
-              name: `Aggregator-${event.AggregatorStatus.device_id}`,
-              strategy: event.AggregatorStatus.strategy,
+              device_id: device_id,
+              name: `Aggregator-${device_id}`,
+              strategy: event.AggregatorStatus.strategy || "CONSERVATIVE",
               is_online: event.AggregatorStatus.is_online,
-              success_rate: event.AggregatorStatus.success_rate,
-              total_bids: event.AggregatorStatus.total_bids,
-              successful_bids: event.AggregatorStatus.successful_bids,
-              total_energy_bought: event.AggregatorStatus.total_energy_bought,
+              success_rate: event.AggregatorStatus.success_rate || 0,
+              total_bids: event.AggregatorStatus.total_bids || 0,
+              successful_bids: event.AggregatorStatus.successful_bids || 0,
+              total_energy_bought:
+                event.AggregatorStatus.total_energy_bought || 0,
               average_bid_price: event.AggregatorStatus.average_bid_price || 0,
               last_updated: new Date().toISOString(),
             };
@@ -605,109 +669,77 @@ export const Dashboard: React.FC = () => {
                   </h3>
                 </div>
                 <div className="card-content">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-                          <span className="text-green-600 text-sm">✓</span>
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900 dark:text-white">
-                            Auction #42
-                          </div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400">
-                            BESS-001 → AGG-002
-                          </div>
-                        </div>
+                  {blockchainSettlements.length === 0 ? (
+                    <div className="text-center py-8">
+                      <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span className="text-blue-600 text-2xl">🔗</span>
                       </div>
-                      <div className="text-right">
-                        <div className="font-medium text-gray-900 dark:text-white">
-                          15.2 kWh
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
-                          6.45c/kWh
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          <a
-                            href="https://explorer.solana.com/tx/3Kx7...9mP2?cluster=devnet"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-500 hover:text-blue-700"
-                          >
-                            Tx: 3Kx7...9mP2 ↗
-                          </a>
-                        </div>
+                      <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                        Real Blockchain Settlements
+                      </h4>
+                      <p className="text-gray-600 dark:text-gray-400 mb-4">
+                        Blockchain settlements will appear here as real auctions
+                        are completed and settled on-chain.
+                      </p>
+                      <div className="inline-flex items-center px-4 py-2 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-lg text-sm">
+                        <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                        Blockchain Integration Active
                       </div>
                     </div>
-
-                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-                          <span className="text-green-600 text-sm">✓</span>
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900 dark:text-white">
-                            Auction #38
+                  ) : (
+                    <div className="space-y-3">
+                      {blockchainSettlements.map((settlement, index) => (
+                        <div
+                          key={settlement.auction_id || `settlement-${index}`}
+                          className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                              <span className="text-green-600 text-sm">✓</span>
+                            </div>
+                            <div>
+                              <div className="font-medium text-gray-900 dark:text-white">
+                                Auction #{settlement.auction_id}
+                              </div>
+                              <div className="text-sm text-gray-600 dark:text-gray-400">
+                                {settlement.winner} → BESS-{settlement.seller}
+                              </div>
+                            </div>
                           </div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400">
-                            BESS-003 → AGG-001
+                          <div className="text-right">
+                            <div className="font-medium text-gray-900 dark:text-white">
+                              {settlement.energy_amount.toFixed(1)} kWh
+                            </div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                              {(settlement.final_price / 100).toFixed(2)}c/kWh
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {settlement.settlement_signature ? (
+                                <a
+                                  href={
+                                    settlement.blockchain_url ||
+                                    `https://explorer.solana.com/tx/${settlement.settlement_signature}?cluster=devnet`
+                                  }
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-500 hover:text-blue-700"
+                                >
+                                  Tx:{" "}
+                                  {settlement.settlement_signature?.slice(0, 4)}
+                                  ...
+                                  {settlement.settlement_signature?.slice(-4)} ↗
+                                </a>
+                              ) : (
+                                <span className="text-yellow-600">
+                                  Processing...
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-medium text-gray-900 dark:text-white">
-                          8.7 kWh
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
-                          5.89c/kWh
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          <a
-                            href="https://explorer.solana.com/tx/7Fm2...4nQ8?cluster=devnet"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-500 hover:text-blue-700"
-                          >
-                            Tx: 7Fm2...4nQ8 ↗
-                          </a>
-                        </div>
-                      </div>
+                      ))}
                     </div>
-
-                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-                          <span className="text-green-600 text-sm">✓</span>
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900 dark:text-white">
-                            Auction #35
-                          </div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400">
-                            BESS-002 → AGG-002
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-medium text-gray-900 dark:text-white">
-                          12.1 kWh
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
-                          6.12c/kWh
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          <a
-                            href="https://explorer.solana.com/tx/9Hp5...2rL6?cluster=devnet"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-500 hover:text-blue-700"
-                          >
-                            Tx: 9Hp5...2rL6 ↗
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
 

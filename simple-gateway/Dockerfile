@@ -1,4 +1,4 @@
-FROM rust:1.82 as builder
+FROM rust:latest as builder
 
 # Install build dependencies for Ubuntu target
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -18,8 +18,8 @@ COPY src ./src
 # Build the application for Ubuntu target
 RUN cargo build --release
 
-# Runtime stage - use Ubuntu 24.04 for better library support
-FROM ubuntu:24.04
+# Runtime stage - use Ubuntu 22.04 for glibc compatibility
+FROM ubuntu:22.04
 
 # Install minimal runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \

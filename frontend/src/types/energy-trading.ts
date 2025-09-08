@@ -28,7 +28,7 @@ export interface BESSNode {
 }
 
 export interface AggregatorNode {
-  aggregator_id: string;
+  device_id: string;
   strategy: string;
   max_bid_price: number;
   reputation_score: number;
@@ -63,6 +63,7 @@ export interface SystemEvent {
     | "AggregatorRegistered"
     | "DirectQuerySent"
     | "DirectQueryResponse"
+    | "BlockchainSettlement"
     | "INITIAL_DATA";
   data:
     | AuctionStartedEvent
@@ -82,7 +83,8 @@ export interface SystemEvent {
     | BESSNodeRegisteredEvent
     | AggregatorRegisteredEvent
     | DirectQuerySentEvent
-    | DirectQueryResponseEvent;
+    | DirectQueryResponseEvent
+    | BlockchainSettlementEvent;
   timestamp: string;
 }
 
@@ -122,6 +124,17 @@ export interface AuctionCompletedEvent {
   final_price: number; // Price in cents/kWh
   total_value: number; // Total value in cents
   auction_duration_ms: number; // Duration in milliseconds
+}
+
+export interface BlockchainSettlementEvent {
+  auction_id: number;
+  winner: string;
+  seller: string;
+  energy_amount: number; // Energy in kWh
+  final_price: number; // Price in cents/kWh
+  total_value: number; // Total value in cents
+  settlement_signature: string; // Blockchain transaction signature
+  timestamp: number;
 }
 
 export interface QuerySentEvent {

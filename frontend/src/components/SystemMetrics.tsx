@@ -295,11 +295,11 @@ export const SystemMetrics: React.FC<SystemMetricsProps> = ({
                       .slice(0, 5)
                       .map((agg) => (
                         <div
-                          key={agg.aggregator_id}
+                          key={agg.device_id}
                           className="flex items-center justify-between text-sm"
                         >
                           <span className="text-gray-600">
-                            AGG-{agg.aggregator_id}
+                            AGG-{agg.device_id}
                           </span>
                           <div className="flex items-center space-x-2">
                             <span className="text-gray-500">

@@ -266,11 +266,11 @@ export const AuctionView: React.FC<AuctionViewProps> = ({
                     <div className="space-y-1">
                       {(aggregators || []).slice(0, 3).map((agg) => (
                         <div
-                          key={agg.aggregator_id}
+                          key={agg.device_id}
                           className="flex items-center justify-between text-xs"
                         >
                           <span className="text-gray-600">
-                            AGG-{agg.aggregator_id}
+                            AGG-{agg.device_id}
                           </span>
                           <span className="text-gray-500">
                             {agg.strategy} ({agg.reputation_score})
