@@ -1,10 +1,28 @@
 # Energy Trading System
 
-A production-ready Rust/Solana implementation of a real-time energy auction platform for Distributed Battery Energy Storage Systems (D-BESS) and energy aggregators.
+A **decentralized energy marketplace** built with Rust/Solana that enables real-time energy auctions between Battery Energy Storage Systems (BESS) and energy aggregators, with blockchain settlement for transparent and immutable transactions.
 
 ## 🎯 Project Goal
 
-Demonstrate that competitive bidding among multiple energy aggregators for D-BESS energy results in **fairer prices for BESS owners** compared to a single-utility model.
+Demonstrate that **competitive real-time bidding** among multiple energy aggregators for distributed battery energy results in **fairer prices for BESS owners** compared to traditional single-utility models, while providing **sub-500ms response times** and **blockchain-verified settlements**.
+
+## 🏗️ System Architecture
+
+### **Core Components**
+
+- **🔄 Real-time Auction Engine**: WebSocket-based bidding with <500ms latency
+- **⚡ BESS Management**: Live monitoring of battery health, capacity, and energy availability
+- **🏢 Aggregator Platform**: Competitive bidding system for energy procurement
+- **⛓️ Blockchain Settlement**: Solana smart contracts for transparent, immutable transactions
+- **📊 Live Dashboard**: Real-time visualization of energy trading and market dynamics
+
+### **Key Features**
+
+- **Real-time Energy Auctions**: Sub-second bidding cycles with competitive pricing
+- **Blockchain Integration**: Solana-based settlements with USDC/SOL payments
+- **Distributed BESS Support**: Multi-node battery energy storage system management
+- **Market Transparency**: Public auction results and settlement verification
+- **High Performance**: 1000+ msg/sec throughput with circuit breaker patterns
 
 ## ✅ Current Status
 
