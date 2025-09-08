@@ -699,7 +699,7 @@ export const Dashboard: React.FC = () => {
                             <div className="text-xs text-gray-500">
                               {settlement.settlement_signature ? (
                                 <a
-                                  href={`https://explorer.solana.com/tx/${settlement.settlement_signature}?cluster=devnet`}
+                                  href={`https://explorer.solana.com/tx/${settlement.settlement_signature}?cluster=localnet`}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="text-blue-500 hover:text-blue-700"

@@ -86,16 +86,47 @@ pub async fn trigger_blockchain_settlement(
     energy: f64,
     price: u32,
 ) -> bool {
-    // Minimal implementation to make test pass (TDD Green phase)
-    // In a real implementation, this would:
-    // 1. Initialize aggregator and battery accounts
-    // 2. Create auction on blockchain
-    // 3. Settle auction with real transaction
-    // 4. Return true if successful
-    
     println!("🔗 trigger_blockchain_settlement called for auction #{}: {} -> {} ({} kWh at {}¢)", 
              auction_id, winner, seller, energy, price);
     
-    // For now, just return true to make the test pass
-    true
+    // Create blockchain client
+    let blockchain_client = match BlockchainClient::new() {
+        Ok(client) => client,
+        Err(e) => {
+            eprintln!("❌ Failed to create blockchain client: {}", e);
+            return false;
+        }
+    };
+    
+    // Generate keypairs for aggregator and battery
+    let aggregator_keypair = solana_sdk::signature::Keypair::new();
+    let battery_keypair = solana_sdk::signature::Keypair::new();
+    
+    // Create auction PDA
+    let auction_pubkey = solana_sdk::pubkey::Pubkey::find_program_address(
+        &[b"auction", &auction_id.to_le_bytes()],
+        blockchain_client.program_id(),
+    ).0;
+    
+    // Convert energy to u64 (kWh * 1000 for precision)
+    let energy_amount = (energy * 1000.0) as u64;
+    
+    // Settle the auction on blockchain
+    match blockchain_client.settle_auction(
+        auction_id,
+        energy_amount,
+        price as u64,
+        &aggregator_keypair,
+        &battery_keypair,
+        auction_pubkey,
+    ).await {
+        Ok(signature) => {
+            println!("✅ Real blockchain settlement successful: {}", signature);
+            true
+        }
+        Err(e) => {
+            eprintln!("❌ Blockchain settlement failed: {}", e);
+            false
+        }
+    }
 }

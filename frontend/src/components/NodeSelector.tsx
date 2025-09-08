@@ -59,8 +59,8 @@ export const NodeSelector: React.FC<NodeSelectorProps> = ({
               <option value="">Select a BESS node...</option>
               {bessNodes.map((node) => (
                 <option key={node.node_id} value={node.node_id}>
-                  {node.node_id} - {(node.energy_level || 0).toFixed(1)}{" "}
-                  kWh available
+                  {node.node_id} - {(node.energy_level || 0).toFixed(1)} kWh
+                  available
                 </option>
               ))}
             </select>

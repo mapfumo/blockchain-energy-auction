@@ -58,6 +58,10 @@ impl BlockchainClient {
         })
     }
     
+    pub fn program_id(&self) -> &Pubkey {
+        &self.program_id
+    }
+    
     /// Initialize an aggregator account
     pub async fn initialize_aggregator(
         &self,
