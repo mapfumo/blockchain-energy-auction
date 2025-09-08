@@ -26,7 +26,7 @@ Demonstrate that **competitive real-time bidding** among multiple energy aggrega
 
 ## ✅ Current Status
 
-### 🎉 **WebSocket Connection Issues RESOLVED (2024-09-08)**
+### 🎉 **WebSocket Connection Issues RESOLVED (2025-09-08)**
 
 **Status**: ✅ **RESOLVED** - WebSocket connection working perfectly
 
@@ -40,7 +40,7 @@ Demonstrate that **competitive real-time bidding** among multiple energy aggrega
 
 ## ✨ Latest Features
 
-### 🚀 **NEW: Complete Blockchain Integration (2024)**
+### 🚀 **NEW: Complete Blockchain Integration (2025)**
 
 - **Real-time Blockchain Settlements**: Live auction settlements with Solana transaction links
 - **Test-Driven Development**: Comprehensive TDD implementation for blockchain components
@@ -332,7 +332,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source ~/.cargo/env
 
 # Verify installation
-rustc --version  # Should be 1.70+
+rustc --version  # Should be 1.75+
 cargo --version
 ```
 
@@ -680,7 +680,14 @@ Based on the research paper: _"Communication requirements for enabling real-time
 
 ```
 energy-trading/
-├── energy-trading-rust/          # Rust backend ✅ COMPLETE
+├── simple-gateway/               # Main Rust WebSocket gateway ✅ ACTIVE
+│   ├── src/main.rs              # WebSocket server & event broadcasting
+│   ├── tests/                   # Gateway tests
+│   └── Cargo.toml
+├── mcp-server/                   # MCP server for blockchain status ✅ COMPLETE
+│   ├── src/                     # JSON-RPC 2.0 MCP implementation
+│   └── Cargo.toml
+├── energy-trading-rust/          # Core Rust backend ✅ COMPLETE
 │   ├── src/
 │   │   ├── etp_message.rs       # ETP protocol implementation
 │   │   ├── bess_node.rs         # BESS node implementation
@@ -689,22 +696,33 @@ energy-trading/
 │   │   └── error.rs             # Error handling
 │   ├── tests/                   # Integration tests (53 tests passing)
 │   └── Cargo.toml
+├── energy_trading/               # Solana smart contracts ✅ COMPLETE
+│   ├── programs/                # Anchor smart contracts
+│   ├── migrations/              # Database migrations
+│   └── tests/                   # Blockchain tests
+├── energy-trading-golang/        # Go implementation (alternative)
+│   ├── aggregator/              # Go aggregator nodes
+│   ├── battery/                 # Go BESS nodes
+│   └── message/                 # Go message handling
 ├── frontend/                     # Next.js dashboard ✅ PRODUCTION-READY
 │   ├── src/
-│   │   ├── components/          # React components
-│   │   ├── hooks/               # Custom React hooks
+│   │   ├── components/          # React components (Dashboard, etc.)
+│   │   ├── hooks/               # Custom React hooks (WebSocket)
 │   │   ├── types/               # TypeScript definitions
 │   │   └── pages/               # Next.js pages
-│   ├── public/                  # Static assets (logo, favicon)
+│   ├── public/                  # Static assets
 │   └── package.json
-├── energy_trading/               # Solana smart contracts ✅ COMPLETE
-├── infrastructure/               # Docker & deployment (upcoming)
-├── docs/                        # Documentation
-│   ├── architecture.md
-│   ├── requirements.md
-│   └── project_overview.md
-├── TODO.md                      # Project roadmap
-├── STATUS.md                    # Current status overview
+├── containers/                   # Docker containers ✅ ACTIVE
+│   ├── bess-node/               # BESS node containers
+│   └── aggregator/              # Aggregator containers
+├── data/                        # Persistent data storage
+│   ├── postgres/                # PostgreSQL data
+│   └── solana/                  # Solana ledger data
+├── docs/                        # Comprehensive documentation
+│   ├── architecture.md          # System architecture
+│   ├── CORS_WEBSOCKET_FIX.md   # WebSocket troubleshooting
+│   └── README.md                # Documentation index
+├── TODO.md                      # Project roadmap & status
 └── README.md                    # This file
 ```
 
@@ -717,7 +735,7 @@ energy-trading/
 
 ## 📄 License
 
-MIT License - see LICENSE file for details
+MIT License
 
 ## 🎯 Success Metrics
 
