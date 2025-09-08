@@ -12,9 +12,11 @@ export const BESSNodeDetails: React.FC<BESSNodeDetailsProps> = ({
 }) => {
   if (!node) return null;
 
-  const energyPercentage = (node.energy_level / node.capacity_kwh) * 100;
-  const availableForSale = node.energy_level; // All energy is available for sale
-  const soldEnergy = node.capacity_kwh - node.energy_level;
+  const energyLevel = node.energy_level || 0;
+  const capacity = node.capacity_kwh || 0;
+  const energyPercentage = capacity > 0 ? (energyLevel / capacity) * 100 : 0;
+  const availableForSale = energyLevel; // All energy is available for sale
+  const soldEnergy = capacity - energyLevel;
 
   const getBatteryHealthColor = (health: number) => {
     switch (health) {
@@ -97,8 +99,8 @@ export const BESSNodeDetails: React.FC<BESSNodeDetailsProps> = ({
                 <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
                   <span>Current Level</span>
                   <span>
-                    {node.energy_level.toFixed(1)} /{" "}
-                    {node.capacity_kwh.toFixed(1)} kWh
+                    {energyLevel.toFixed(1)} /{" "}
+                    {capacity.toFixed(1)} kWh
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-3">
@@ -145,7 +147,7 @@ export const BESSNodeDetails: React.FC<BESSNodeDetailsProps> = ({
                   Reserve Price
                 </div>
                 <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {(node.reserve_price / 100).toFixed(2)}c/kWh
+                  {((node.reserve_price || 0) / 100).toFixed(2)}c/kWh
                 </div>
               </div>
               <div>
@@ -161,7 +163,7 @@ export const BESSNodeDetails: React.FC<BESSNodeDetailsProps> = ({
                   Status
                 </div>
                 <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {node.is_online ? "Online" : "Offline"}
+                  {(node.is_online !== undefined ? node.is_online : false) ? "Online" : "Offline"}
                 </div>
               </div>
               <div>
@@ -169,7 +171,7 @@ export const BESSNodeDetails: React.FC<BESSNodeDetailsProps> = ({
                   Last Seen
                 </div>
                 <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {new Date(node.last_seen * 1000).toLocaleTimeString()}
+                  {node.last_seen ? new Date(node.last_seen * 1000).toLocaleTimeString() : "Unknown"}
                 </div>
               </div>
             </div>
@@ -200,7 +202,7 @@ export const BESSNodeDetails: React.FC<BESSNodeDetailsProps> = ({
               </div>
               <div className="text-sm text-gray-500 dark:text-gray-400">
                 Last seen:{" "}
-                {new Date(node.last_seen * 1000).toLocaleTimeString()}
+                {node.last_seen ? new Date(node.last_seen * 1000).toLocaleTimeString() : "Unknown"}
               </div>
             </div>
           </div>
@@ -210,15 +212,15 @@ export const BESSNodeDetails: React.FC<BESSNodeDetailsProps> = ({
             <div className="flex items-center space-x-2">
               <div
                 className={`w-3 h-3 rounded-full ${
-                  node.is_online ? "bg-green-500" : "bg-red-500"
+                  (node.is_online !== undefined ? node.is_online : false) ? "bg-green-500" : "bg-red-500"
                 }`}
               ></div>
               <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                {node.is_online ? "Online" : "Offline"}
+                {(node.is_online !== undefined ? node.is_online : false) ? "Online" : "Offline"}
               </span>
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              {node.is_online ? "Connected and ready" : "Disconnected"}
+              {(node.is_online !== undefined ? node.is_online : false) ? "Connected and ready" : "Disconnected"}
             </div>
           </div>
         </div>

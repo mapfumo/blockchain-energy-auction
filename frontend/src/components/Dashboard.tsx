@@ -312,34 +312,25 @@ export const Dashboard: React.FC = () => {
       } else if (event.BESSNodeStatus) {
         setBessNodes((prev) => {
           const existingIndex = prev.findIndex(
-            (node) => node.device_id === event.BESSNodeStatus.device_id
+            (node) => node.node_id === `BESS-${event.BESSNodeStatus.device_id}`
           );
           if (existingIndex >= 0) {
             const updated = [...prev];
             updated[existingIndex] = {
               ...updated[existingIndex],
-              current_energy_level: event.BESSNodeStatus.energy_available,
-              battery_health: event.BESSNodeStatus.battery_health,
+              energy_level: event.BESSNodeStatus.energy_available,
               is_online: event.BESSNodeStatus.is_online,
-              last_updated: new Date().toISOString(),
+              last_seen: Math.floor(Date.now() / 1000),
             };
             return updated;
           } else {
             const newBessNode: BESSNode = {
-              device_id: event.BESSNodeStatus.device_id,
-              name: `BESS-${event.BESSNodeStatus.device_id}`,
-              capacity: 15.0, // 15kWh max capacity (realistic Australian home battery)
-              current_energy_level: event.BESSNodeStatus.energy_available,
-              reserve_price: 5.0 + Math.random() * 25.0, // 5-30 c/kWh (competitive pricing range)
-              percentage_for_sale: 50.0 + (event.BESSNodeStatus.device_id % 30), // 50-80% available for sale
-              battery_voltage: [12.0, 24.0, 48.0][
-                event.BESSNodeStatus.device_id % 3
-              ], // 12V, 24V, 48V (Australian residential standards)
-              max_discharge_rate:
-                5.0 + (event.BESSNodeStatus.device_id % 3) * 1.0, // 5-7kW discharge rate
-              battery_health: event.BESSNodeStatus.battery_health,
+              node_id: `BESS-${event.BESSNodeStatus.device_id}`,
+              energy_level: event.BESSNodeStatus.energy_available,
+              capacity_kwh: 15.0, // 15kWh max capacity (realistic Australian home battery)
+              reserve_price: Math.round((5.0 + Math.random() * 25.0) * 100), // 5-30 c/kWh in cents
               is_online: event.BESSNodeStatus.is_online,
-              last_updated: new Date().toISOString(),
+              last_seen: Math.floor(Date.now() / 1000), // Current timestamp in seconds
             };
             return [...prev, newBessNode];
           }
@@ -357,28 +348,20 @@ export const Dashboard: React.FC = () => {
             updated[existingIndex] = {
               ...updated[existingIndex],
               is_online: event.AggregatorStatus.is_online,
-              success_rate: event.AggregatorStatus.success_rate || 0,
-              total_bids: event.AggregatorStatus.total_bids || 0,
-              successful_bids: event.AggregatorStatus.successful_bids || 0,
-              total_energy_bought:
-                event.AggregatorStatus.total_energy_bought || 0,
-              average_bid_price: event.AggregatorStatus.average_bid_price || 0,
-              last_updated: new Date().toISOString(),
+              reputation_score: event.AggregatorStatus.success_rate || 0.0,
+              last_seen: Math.floor(Date.now() / 1000),
             };
             return updated;
           } else {
             const newAggregator: AggregatorNode = {
               device_id: device_id,
-              name: `Aggregator-${device_id}`,
-              strategy: event.AggregatorStatus.strategy || "CONSERVATIVE",
+              strategy: event.AggregatorStatus.strategy || "Conservative",
+              max_bid_price: Math.round(
+                (event.AggregatorStatus.average_bid_price || 30.0) * 100
+              ), // Convert to cents
+              reputation_score: event.AggregatorStatus.success_rate || 0.0,
               is_online: event.AggregatorStatus.is_online,
-              success_rate: event.AggregatorStatus.success_rate || 0,
-              total_bids: event.AggregatorStatus.total_bids || 0,
-              successful_bids: event.AggregatorStatus.successful_bids || 0,
-              total_energy_bought:
-                event.AggregatorStatus.total_energy_bought || 0,
-              average_bid_price: event.AggregatorStatus.average_bid_price || 0,
-              last_updated: new Date().toISOString(),
+              last_seen: Math.floor(Date.now() / 1000),
             };
             return [...prev, newAggregator];
           }
@@ -716,10 +699,7 @@ export const Dashboard: React.FC = () => {
                             <div className="text-xs text-gray-500">
                               {settlement.settlement_signature ? (
                                 <a
-                                  href={
-                                    settlement.blockchain_url ||
-                                    `https://explorer.solana.com/tx/${settlement.settlement_signature}?cluster=devnet`
-                                  }
+                                  href={`https://explorer.solana.com/tx/${settlement.settlement_signature}?cluster=devnet`}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="text-blue-500 hover:text-blue-700"
