@@ -2,6 +2,8 @@
 
 A **decentralized energy marketplace** built with Rust/Solana that enables real-time energy auctions between Battery Energy Storage Systems (BESS) and energy aggregators, with blockchain settlement for transparent and immutable transactions.
 
+> **📄 Academic Foundation**: This project implements the framework proposed in the conference paper ["Communication requirements for enabling real-time energy trading among distributed energy storage systems and aggregators"](https://www.mapfumo.net/img/conference_paper_antony_mapfumo.pdf) by Antony Mapfumo (Queensland University of Technology), which outlines the theoretical foundation for real-time energy bidding and trading systems in smart grids.
+
 ## 🎯 Project Goal
 
 Demonstrate that **competitive real-time bidding** among multiple energy aggregators for distributed battery energy results in **fairer prices for BESS owners** compared to traditional single-utility models, while providing **sub-500ms response times** and **blockchain-verified settlements**.
