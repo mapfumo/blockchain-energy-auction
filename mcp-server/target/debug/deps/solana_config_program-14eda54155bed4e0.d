@@ -1,8 +1,0 @@
-/home/tony/Desktop/energy-trading/mcp-server/target/debug/deps/libsolana_config_program-14eda54155bed4e0.rmeta: /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/solana-config-program-1.18.26/src/lib.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/solana-config-program-1.18.26/src/config_instruction.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/solana-config-program-1.18.26/src/config_processor.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/solana-config-program-1.18.26/src/date_instruction.rs
-
-/home/tony/Desktop/energy-trading/mcp-server/target/debug/deps/solana_config_program-14eda54155bed4e0.d: /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/solana-config-program-1.18.26/src/lib.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/solana-config-program-1.18.26/src/config_instruction.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/solana-config-program-1.18.26/src/config_processor.rs /home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/solana-config-program-1.18.26/src/date_instruction.rs
-
-/home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/solana-config-program-1.18.26/src/lib.rs:
-/home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/solana-config-program-1.18.26/src/config_instruction.rs:
-/home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/solana-config-program-1.18.26/src/config_processor.rs:
-/home/tony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/solana-config-program-1.18.26/src/date_instruction.rs:
