@@ -62,6 +62,14 @@ impl BlockchainClient {
         &self.program_id
     }
     
+    pub fn payer(&self) -> &Keypair {
+        &self.payer
+    }
+    
+    pub fn rpc_client(&self) -> &RpcClient {
+        &self.rpc_client
+    }
+    
     /// Initialize an aggregator account
     pub async fn initialize_aggregator(
         &self,
@@ -81,7 +89,7 @@ impl BlockchainClient {
         let instruction = Instruction {
             program_id: self.program_id,
             accounts: vec![
-                AccountMeta::new(aggregator_pda, true),
+                AccountMeta::new(aggregator_pda, false), // PDA, not a signer
                 AccountMeta::new(self.payer.pubkey(), true),
                 AccountMeta::new_readonly(Pubkey::from_str("11111111111111111111111111111111")?, false),
             ],
@@ -119,7 +127,7 @@ impl BlockchainClient {
         let instruction = Instruction {
             program_id: self.program_id,
             accounts: vec![
-                AccountMeta::new(battery_pda, true),
+                AccountMeta::new(battery_pda, false), // PDA, not a signer
                 AccountMeta::new(self.payer.pubkey(), true),
                 AccountMeta::new_readonly(Pubkey::from_str("11111111111111111111111111111111")?, false),
             ],
@@ -243,6 +251,22 @@ impl BlockchainClient {
         // First, we need to initialize the aggregator and battery accounts
         // Then create and settle the auction
         
+        println!("🔧 Initializing aggregator account...");
+        self.initialize_aggregator(aggregator_keypair).await?;
+        
+        println!("🔧 Initializing battery account...");
+        self.initialize_battery(battery_keypair).await?;
+        
+        println!("🔧 Initializing auction account...");
+        let auction_keypair = Keypair::new();
+        let _auction_pubkey = self.initialize_auction(
+            auction_id,
+            energy_amount,
+            final_price,
+            aggregator_keypair,
+            battery_keypair,
+        ).await?;
+        
         // Derive aggregator PDA
         let aggregator_pda = Pubkey::find_program_address(
             &[b"aggregator", aggregator_keypair.pubkey().as_ref()],
@@ -255,11 +279,8 @@ impl BlockchainClient {
             &self.program_id,
         ).0;
         
-        // Create auction PDA
-        let auction_pda = Pubkey::find_program_address(
-            &[b"auction", &auction_id.to_le_bytes()],
-            &self.program_id,
-        ).0;
+        // Use the newly created auction account
+        let auction_pda = _auction_pubkey;
         
         // Create instruction data for settle_auction
         // Anchor discriminator for settle_auction function
@@ -274,9 +295,9 @@ impl BlockchainClient {
         let instruction = Instruction {
             program_id: self.program_id,
             accounts: vec![
-                AccountMeta::new(auction_pda, true), // Auction account
-                AccountMeta::new(aggregator_pda, true), // Aggregator account  
-                AccountMeta::new(battery_pda, true), // Battery account
+                AccountMeta::new(auction_pda, false), // Auction account (PDA, not a signer)
+                AccountMeta::new(aggregator_pda, false), // Aggregator account (PDA, not a signer)
+                AccountMeta::new(battery_pda, false), // Battery account (PDA, not a signer)
                 AccountMeta::new(self.payer.pubkey(), true), // Payer signs
                 AccountMeta::new_readonly(Pubkey::from_str("11111111111111111111111111111111")?, false), // System program
             ],
