@@ -20,7 +20,7 @@ export const NodeSelector: React.FC<NodeSelectorProps> = ({
 
   const handleBESSChange = (nodeId: string) => {
     const node = nodeId
-      ? bessNodes.find((n) => n.device_id === nodeId) || null
+      ? bessNodes.find((n) => n.node_id === nodeId) || null
       : null;
     setSelectedBESS(node);
     onBESSSelect(node);
@@ -52,22 +52,22 @@ export const NodeSelector: React.FC<NodeSelectorProps> = ({
               BESS Nodes
             </label>
             <select
-              value={selectedBESS?.device_id || ""}
+              value={selectedBESS?.node_id || ""}
               onChange={(e) => handleBESSChange(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-gray-100"
             >
               <option value="">Select a BESS node...</option>
               {bessNodes.map((node) => (
-                <option key={node.device_id} value={node.device_id}>
-                  BESS-{node.device_id} - {node.current_energy_level.toFixed(1)}{" "}
+                <option key={node.node_id} value={node.node_id}>
+                  {node.node_id} - {(node.energy_level || 0).toFixed(1)}{" "}
                   kWh available
                 </option>
               ))}
             </select>
             {selectedBESS && (
               <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                Selected: BESS-{selectedBESS.device_id} (
-                {selectedBESS.current_energy_level.toFixed(1)} kWh)
+                Selected: {selectedBESS.node_id} (
+                {(selectedBESS.energy_level || 0).toFixed(1)} kWh)
               </div>
             )}
           </div>
