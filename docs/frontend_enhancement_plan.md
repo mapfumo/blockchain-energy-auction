@@ -14,6 +14,16 @@ The Energy Trading System frontend is now fully functional with real-time WebSoc
 - **Test Components**: WebSocket debugging tools
 - **CORS Support**: Cross-origin connection handling
 
+### Recently Fixed Issues ✅
+
+- **Node Name Display**: Fixed undefined node names in dashboard components
+  - Resolved "AGG-AGG-002" duplication in dropdowns
+  - Fixed "BESS-Undefined" with proper validation logic
+  - Enhanced LiveEventsPanel device ID extraction
+  - Updated TypeScript interfaces for flexible data handling
+- **Frontend Type Safety**: Improved component type compatibility
+- **Error Handling**: Added comprehensive validation for WebSocket event data
+
 ## Phase 2.4 Enhancement Goals
 
 ### 1. Advanced TailwindCSS Styling 🎨

@@ -165,6 +165,41 @@ The frontend is containerized and can be run with Docker Compose:
 docker-compose up frontend
 ```
 
+## Troubleshooting
+
+### Common Issues
+
+#### Node Names Showing as "undefined"
+
+**Problem**: Dashboard shows "BESS Node undefined" or "Aggregator undefined" in live events.
+
+**Solution**: This has been fixed in the current version with enhanced device ID extraction:
+- Added validation for missing device_id fields
+- Implemented fallback logic for different field names (device_id, aggregator_id, node_id)
+- Enhanced TypeScript interfaces with optional fields
+
+**Prevention**: Ensure backend events include proper device identification fields.
+
+#### WebSocket Connection Issues
+
+**Problem**: Dashboard not receiving real-time updates.
+
+**Solution**:
+1. Check WebSocket URL in environment variables
+2. Verify gateway is running on correct port (8080)
+3. Check browser console for connection errors
+4. Ensure CORS is configured properly
+
+#### TypeScript Build Errors
+
+**Problem**: Build fails with type mismatches.
+
+**Solution**:
+1. Run `npm run type-check` to identify type issues
+2. Ensure interfaces match backend data structure
+3. Use optional fields (`?`) for potentially missing data
+4. Add proper null checking in components
+
 ## Contributing
 
 1. Write tests for new features
@@ -172,6 +207,7 @@ docker-compose up frontend
 3. Maintain 80%+ test coverage
 4. Follow TypeScript best practices
 5. Use meaningful commit messages
+6. Test with real backend data to ensure compatibility
 
 ## License
 

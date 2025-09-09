@@ -34,6 +34,12 @@ export interface AggregatorNode {
   reputation_score: number;
   is_online: boolean;
   last_seen: number;
+  // Additional fields from AggregatorStatusEvent
+  success_rate?: number;
+  total_bids?: number;
+  successful_bids?: number;
+  total_energy_bought?: number;
+  average_bid_price?: number;
 }
 
 export type BiddingStrategy =
@@ -177,21 +183,23 @@ export interface SystemMetricsEvent {
 }
 
 export interface BESSNodeStatusEvent {
-  device_id: number;
-  energy_available: number;
-  battery_health: number;
-  is_online: boolean;
+  device_id?: number | string;
+  node_id?: string;
+  energy_available?: number;
+  battery_health?: number;
+  is_online?: boolean;
 }
 
 export interface AggregatorStatusEvent {
-  device_id: number;
-  strategy: string;
-  success_rate: number;
-  total_bids: number;
-  successful_bids: number;
-  total_energy_bought: number; // Total energy bought in kWh
-  average_bid_price: number; // Price in cents/kWh
-  is_online: boolean; // Online status
+  device_id?: number | string;
+  aggregator_id?: string;
+  strategy?: string;
+  success_rate?: number;
+  total_bids?: number;
+  successful_bids?: number;
+  total_energy_bought?: number; // Total energy bought in kWh
+  average_bid_price?: number; // Price in cents/kWh
+  is_online?: boolean; // Online status
 }
 
 export interface SystemMetrics {

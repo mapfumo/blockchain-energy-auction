@@ -71,6 +71,8 @@ Demonstrate that **competitive real-time bidding** among multiple energy aggrega
 
 ## ✨ Latest Features
 
+### 🆕 **Latest Features**
+
 ### 🚀 **NEW: Complete Blockchain Integration (2025)**
 
 - **Real-time Blockchain Settlements**: Live auction settlements with Solana transaction links
@@ -89,7 +91,15 @@ Demonstrate that **competitive real-time bidding** among multiple energy aggrega
 - **High Contrast UI**: Colorful auction details (blue/green/purple/orange) for excellent readability
 - **PostgreSQL Database**: Real data persistence with automatic migrations and graceful fallback
 
-## 📚 Documentation
+### 🔄 **Frontend UI/UX Fixes (September 2025)**
+
+- **Node Name Display Fix**: Resolved undefined node names in dashboard components
+  - Fixed "BESS Node undefined" and "Aggregator undefined" in live events
+  - Resolved "AGG-AGG-002" prefix duplication in dropdown selectors
+  - Enhanced device ID extraction with proper validation and fallback logic
+- **Enhanced Data Validation**: Robust WebSocket event processing with comprehensive field validation
+- **Improved Type Safety**: Updated TypeScript interfaces for better compatibility with backend data
+- **Error Handling**: Added comprehensive validation for missing or malformed device_id fields
 
 Detailed technical documentation is available in the [`docs/`](./docs/) folder:
 

@@ -41,7 +41,11 @@ impl BlockchainClient {
                 println!("💰 Airdrop requested: {}", signature);
                 // Wait for confirmation
                 match rpc_client.confirm_transaction(&signature) {
-                    Ok(_) => println!("✅ Gateway account funded successfully"),
+                    Ok(_) => {
+                        println!("✅ Gateway account funded successfully");
+                        // Add a small delay to ensure the account is fully funded
+                        std::thread::sleep(std::time::Duration::from_millis(1000));
+                    },
                     Err(e) => println!("⚠️ Airdrop confirmation failed: {}", e),
                 }
             }

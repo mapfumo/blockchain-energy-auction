@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>WebSocket Test</title>
+  </head>
+  <body>
+    <h1>WebSocket Connection Test</h1>
+    <div id="status">Connecting...</div>
+    <div id="events"></div>
+
+    <script>
+      const status = document.getElementById("status");
+      const events = document.getElementById("events");
+
+      console.log("Testing WebSocket connection to ws://localhost:8080/ws");
+
+      const ws = new WebSocket("ws://localhost:8080/ws");
+
+      ws.onopen = function (event) {
+        console.log("✅ WebSocket connected successfully!");
+        status.innerHTML = "✅ Connected - Waiting for events...";
+        status.style.color = "green";
+      };
+
+      ws.onmessage = function (event) {
+        console.log("📡 Received event:", event.data);
+        try {
+          const data = JSON.parse(event.data);
+          const eventType = Object.keys(data)[0] || "unknown";
+          events.innerHTML +=
+            "<div>📡 " +
+            eventType +
+            " - " +
+            new Date().toLocaleTimeString() +
+            "</div>";
+        } catch (e) {
+          events.innerHTML +=
+            "<div>📡 Raw data: " + event.data.substring(0, 100) + "...</div>";
+        }
+      };
+
+      ws.onerror = function (error) {
+        console.error("❌ WebSocket error:", error);
+        status.innerHTML = "❌ WebSocket Error: " + error;
+        status.style.color = "red";
+      };
+
+      ws.onclose = function (event) {
+        console.log("🔌 WebSocket connection closed");
+        status.innerHTML = "🔌 Connection closed";
+        status.style.color = "orange";
+      };
+    </script>
+  </body>
+</html>

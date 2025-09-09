@@ -198,6 +198,16 @@ Migration of Golang energy auction prototype to production-ready Rust/Solana sys
   - [x] Error and alert notifications
   - [x] Mobile-responsive design
 
+- [x] **UI/UX Fixes and Improvements**
+
+  - [x] Fixed undefined node name display issues
+  - [x] Resolved "AGG-AGG-002" prefix duplication in dropdowns
+  - [x] Fixed "BESS-Undefined" with proper device_id validation
+  - [x] Enhanced LiveEventsPanel device ID extraction
+  - [x] Updated TypeScript interfaces for better data handling
+  - [x] Improved error handling and validation for WebSocket events
+  - [x] Enhanced component type safety and compatibility
+
 - [x] **Advanced UI/UX Features**
 
   - [x] Professional logo and branding
@@ -364,6 +374,32 @@ Migration of Golang energy auction prototype to production-ready Rust/Solana sys
 - [ ] **Mobile Optimization**: Enhanced mobile responsiveness and touch interactions
 
 ### Recently Resolved ✅
+
+#### Dashboard Metrics and Live Events Issues (2024-09-09) - RESOLVED
+
+**Status**: ✅ **RESOLVED** - All dashboard metrics now updating correctly and live events displaying continuously
+
+**Root Causes Identified and Fixed**:
+
+1. **Dashboard Metrics Issue**: BESS nodes and aggregators were not being added to gateway state during event generation, causing SystemMetrics to show 0 counts
+2. **Live Events Issue**: Event generation was too slow (5s) and buffer sizes were too small, causing only 3 events to show continuously
+
+**Fixes Applied**:
+
+- ✅ **State Management Fix**: Modified event generation to add BESS nodes and aggregators to gateway state when generating BESSNodeStatus and AggregatorStatus events
+- ✅ **Event Generation Speed**: Increased frequency from 5 seconds to 1.5 seconds (3x faster)
+- ✅ **Event Buffer Size**: Increased frontend buffer from 100 to 200 events
+- ✅ **Display Limit**: Increased LiveEventsPanel maxEvents from 50 to 100
+- ✅ **Debug Logging**: Added comprehensive logging for state management tracking
+
+**Current State**:
+
+- ✅ **Total Auctions**: Now showing correct count (updating in real-time)
+- ✅ **Active Auctions**: Now showing correct count (updating in real-time)
+- ✅ **Total Bids**: Already working correctly (updating in real-time)
+- ✅ **BESS Nodes**: Now showing correct count (was 0, now working)
+- ✅ **Aggregators**: Now showing correct count (updating in real-time)
+- ✅ **Live Events**: Continuous stream every 1.5 seconds with more history
 
 #### WebSocket Connection Problems (2024-09-08) - RESOLVED
 

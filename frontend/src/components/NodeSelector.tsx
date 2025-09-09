@@ -85,13 +85,13 @@ export const NodeSelector: React.FC<NodeSelectorProps> = ({
               <option value="">Select an aggregator...</option>
               {aggregators.map((aggregator) => (
                 <option key={aggregator.device_id} value={aggregator.device_id}>
-                  AGG-{aggregator.device_id} - {aggregator.strategy} Strategy
+                  {aggregator.device_id} - {aggregator.strategy} Strategy
                 </option>
               ))}
             </select>
             {selectedAggregator && (
               <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                Selected: AGG-{selectedAggregator.device_id} (
+                Selected: {selectedAggregator.device_id} (
                 {selectedAggregator.strategy})
               </div>
             )}

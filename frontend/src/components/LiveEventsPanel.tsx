@@ -5,6 +5,7 @@ import {
   BidPlacedEvent,
   BidAcceptedEvent,
   BidRejectedEvent,
+  AuctionCompletedEvent,
   QuerySentEvent,
   QueryResponseEvent,
   EnergyDepletedEvent,
@@ -28,15 +29,20 @@ interface LiveEventsPanelProps {
 
 // Helper function to safely format numbers
 const safeToFixed = (
-  value: number | undefined,
+  value: number | undefined | null,
   decimals: number = 1
 ): string => {
-  return value !== undefined ? value.toFixed(decimals) : "N/A";
+  return value !== undefined && value !== null
+    ? value.toFixed(decimals)
+    : "N/A";
 };
 
 // Helper function to safely format prices (convert cents to c/kWh)
-const safePrice = (value: number | undefined, decimals: number = 2): string => {
-  return value !== undefined
+const safePrice = (
+  value: number | undefined | null,
+  decimals: number = 2
+): string => {
+  return value !== undefined && value !== null
     ? `${(value / 100).toFixed(decimals)}c/kWh`
     : "N/A";
 };
@@ -69,7 +75,7 @@ type EventFilter =
 
 export const LiveEventsPanel: React.FC<LiveEventsPanelProps> = ({
   events,
-  maxEvents = 50,
+  maxEvents = 100,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [filter, setFilter] = useState<EventFilter>("ALL");
@@ -248,37 +254,82 @@ export const LiveEventsPanel: React.FC<LiveEventsPanelProps> = ({
         };
       }
       case "BESSNodeStatus": {
-        const data = event.data as BESSNodeStatusEvent;
-        const healthStatus =
-          data.battery_health === 0
-            ? "Excellent"
-            : data.battery_health === 1
-            ? "Good"
-            : "Fair";
+        const data = event.data as any; // Use any to handle different data formats
+
+        // Handle battery health - support both 0-3 and 80-100 ranges
+        let healthStatus = "Unknown";
+        if (data.battery_health !== undefined && data.battery_health !== null) {
+          if (data.battery_health <= 3) {
+            // 0-3 range from gateway
+            healthStatus =
+              data.battery_health === 0
+                ? "Excellent"
+                : data.battery_health === 1
+                ? "Good"
+                : data.battery_health === 2
+                ? "Fair"
+                : "Poor";
+          } else {
+            // 80-100 range from containers
+            healthStatus =
+              data.battery_health >= 95
+                ? "Excellent"
+                : data.battery_health >= 85
+                ? "Good"
+                : data.battery_health >= 75
+                ? "Fair"
+                : "Poor";
+          }
+        }
+
+        // Extract device ID - handle various formats
+        const deviceId = data.device_id || data.node_id || "Unknown";
+        const nodeId = deviceId.toString().startsWith("BESS-")
+          ? deviceId
+          : `BESS-${deviceId}`;
+
+        // Handle energy field - support both field names
+        const energyAvailable = data.energy_available || data.energy_level || 0;
+
         return {
           icon: "🔋",
           color: "text-orange-600",
           bgColor: "bg-orange-50 dark:bg-orange-900/20",
           title: "BESS Status",
-          description: `BESS Node ${data.device_id}: ${
-            data.is_online ? "Online" : "Offline"
-          }`,
+          description: `${nodeId}: ${data.is_online ? "Online" : "Offline"}`,
           details: `${safeToFixed(
-            data.energy_available
+            energyAvailable
           )} kWh available, Battery Health: ${healthStatus}`,
         };
       }
       case "AggregatorStatus": {
-        const data = event.data as AggregatorStatusEvent;
+        const data = event.data as any; // Use any to handle different data formats
+
+        // Extract device ID - handle various formats
+        let deviceId = data.device_id || data.aggregator_id || "Unknown";
+        if (!deviceId.toString().startsWith("AGG-") && deviceId !== "Unknown") {
+          deviceId = `AGG-${deviceId}`;
+        }
+
+        // Handle different field names and missing data - support container vs gateway formats
+        const successRate = data.success_rate ?? data.reputation_score ?? null;
+        const totalBids =
+          data.total_bids ??
+          data.successful_bids ??
+          data.pending_bids ??
+          data.successful_settlements ??
+          null;
+        const avgPrice = data.average_bid_price ?? null;
+
         return {
           icon: "⚡",
           color: "text-indigo-600",
           bgColor: "bg-indigo-50 dark:bg-indigo-900/20",
           title: "Aggregator Update",
-          description: `Aggregator ${data.device_id}: ${data.strategy} strategy`,
-          details: `${safeToFixed(data.success_rate)}% success rate, ${
-            data.total_bids
-          } total bids, Avg: ${safePrice(data.average_bid_price)}`,
+          description: `${deviceId}: ${data.strategy || "Unknown"} strategy`,
+          details: `${safeToFixed(successRate)}% success rate, ${
+            totalBids !== null ? totalBids : "N/A"
+          } total bids, Avg: ${safePrice(avgPrice)}`,
         };
       }
       case "BESSNodeDiscovered": {

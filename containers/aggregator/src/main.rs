@@ -381,7 +381,7 @@ async fn start_bess_querying(state: Arc<AppState>) {
     sleep(Duration::from_secs(10)).await;
     
     let client = reqwest::Client::new();
-    let gateway_url = format!("http://{}:{}/api/bess-list", state.gateway_host, state.gateway_port);
+    let gateway_url = format!("http://{}:{}/api/bess-nodes", state.gateway_host, state.gateway_port);
     
     let mut interval = interval(Duration::from_secs(30)); // Query every 30 seconds
     
@@ -392,16 +392,14 @@ async fn start_bess_querying(state: Arc<AppState>) {
         match client.get(&gateway_url).send().await {
             Ok(response) => {
                 if response.status().is_success() {
-                    match response.json::<serde_json::Value>().await {
-                        Ok(data) => {
-                            if let Some(bess_nodes) = data.get("bess_nodes").and_then(|nodes| nodes.as_array()) {
-                                info!("Retrieved {} BESS nodes from gateway", bess_nodes.len());
-                                
-                                // Query each BESS node directly
-                                for bess_node in bess_nodes {
-                                    if let Some(node_id) = bess_node.get("node_id").and_then(|id| id.as_str()) {
-                                        query_bess_node_directly(state.clone(), node_id, bess_node).await;
-                                    }
+                    match response.json::<Vec<serde_json::Value>>().await {
+                        Ok(bess_nodes) => {
+                            info!("Retrieved {} BESS nodes from gateway", bess_nodes.len());
+                            
+                            // Query each BESS node directly
+                            for bess_node in &bess_nodes {
+                                if let Some(node_id) = bess_node.get("node_id").and_then(|id| id.as_str()) {
+                                    query_bess_node_directly(state.clone(), node_id, bess_node).await;
                                 }
                             }
                         }

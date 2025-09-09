@@ -14,6 +14,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Event Processing**: Real-time auction events, bid progression, and system metrics
 - **Simple WebSocket Test Components**: Debug tools for WebSocket connection testing
 - **Message Counter**: Dashboard message reception tracking for debugging
+- **Enhanced Event Generation**: Increased event generation frequency from 5s to 1.5s for more continuous live events
+- **Larger Event Buffer**: Increased frontend event buffer from 100 to 200 events for more history
+- **Debug Logging**: Added comprehensive logging for BESS node and aggregator state management
+
+### Fixed
+
+- **Node Name Display Issues**: Fixed undefined node names in dashboard components
+  - Resolved "AGG-AGG-002" duplication by removing redundant prefix in NodeSelector
+  - Fixed "BESS-Undefined" by adding proper validation and fallback logic for device_id extraction
+  - Enhanced LiveEventsPanel to properly extract device IDs from various event data formats
+  - Updated TypeScript interfaces to handle flexible device_id formats (string/number)
+  - Added comprehensive error handling for missing or malformed device_id fields
+- **Frontend Type Safety**: Updated AggregatorNode interface and components for better type compatibility
+- **Event Data Processing**: Improved robustness of WebSocket event processing with better field validation
+- **Dashboard Metrics Not Updating**: Fixed issue where Total Auctions, BESS Nodes, and Aggregators showed 0
+  - Root cause: BESS nodes and aggregators were not being added to gateway state during event generation
+  - Solution: Modified event generation to add nodes/aggregators to state when generating BESSNodeStatus and AggregatorStatus events
+  - Result: All dashboard metrics now update correctly in real-time
+- **Live Events Display**: Fixed issue where only 3 events were showing continuously
+  - Increased event generation frequency from 5 seconds to 1.5 seconds (3x faster)
+  - Increased event buffer size from 100 to 200 events
+  - Increased LiveEventsPanel maxEvents from 50 to 100
+  - Result: Continuous stream of live events with more history
 
 - **Phase 1.1**: Complete ETP Message Protocol implementation
 

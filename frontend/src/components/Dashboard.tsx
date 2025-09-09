@@ -116,6 +116,7 @@ export const Dashboard: React.FC = () => {
       setMessageCount((prev) => prev + 1);
       console.log("📡 Received event:", event.type || "unknown", event);
       console.log("🔍 Event keys:", Object.keys(event));
+      console.log("🔍 Event structure:", JSON.stringify(event, null, 2));
       console.log("🔍 BESSNodeStatus:", event.BESSNodeStatus);
       console.log("🔍 AggregatorStatus:", event.AggregatorStatus);
 
@@ -159,12 +160,38 @@ export const Dashboard: React.FC = () => {
       }
 
       // Add event to live events list
+      let eventType: string;
+      let eventData: any;
+
+      if (event.type && event.data) {
+        // Wrapped format: {type: "SystemMetrics", data: {...}}
+        eventType = event.type;
+        eventData = event.data;
+      } else {
+        // Nested format: {"QuerySent": {...}}
+        eventType = Object.keys(event)[0];
+        eventData = event[eventType];
+      }
+
       const systemEvent: SystemEvent = {
-        type: Object.keys(event)[0] as any,
-        data: event[Object.keys(event)[0]],
+        type: eventType as any,
+        data: eventData,
         timestamp: new Date().toISOString(),
       };
-      setLiveEvents((prev) => [systemEvent, ...prev.slice(0, 99)]); // Keep last 100 events
+      console.log(
+        "📝 Adding event to live events:",
+        eventType,
+        "(extracted from",
+        event.type ? "wrapped" : "nested",
+        "format, total events will be:",
+        liveEvents.length + 1,
+        ")"
+      );
+      setLiveEvents((prev) => {
+        const newEvents = [systemEvent, ...prev.slice(0, 199)];
+        console.log("📝 Live events updated, new count:", newEvents.length);
+        return newEvents;
+      }); // Keep last 200 events
 
       // Handle the actual WebSocket message format from Rust backend
       if (event.AuctionStarted) {
@@ -308,62 +335,116 @@ export const Dashboard: React.FC = () => {
           ...prev.slice(0, 9), // Keep last 10 settlements
         ]);
       } else if (event.SystemMetrics) {
+        console.log(
+          "📊 Processing SystemMetrics (direct format):",
+          event.SystemMetrics
+        );
         setSystemMetrics(event.SystemMetrics);
+      } else if (event.type === "SystemMetrics" && event.data) {
+        console.log(
+          "📊 Processing SystemMetrics (wrapped format):",
+          event.data
+        );
+        setSystemMetrics(event.data);
       } else if (event.BESSNodeStatus) {
+        console.log(
+          "🔋 Processing BESSNodeStatus event:",
+          event.BESSNodeStatus
+        );
+        // Handle BESS node status - ensure device_id exists
+        const deviceId =
+          event.BESSNodeStatus.device_id || event.BESSNodeStatus.node_id;
+        console.log("🔋 Extracted device_id:", deviceId);
+        if (!deviceId) {
+          console.warn(
+            "BESSNodeStatus event missing device_id:",
+            event.BESSNodeStatus
+          );
+          return;
+        }
+
+        // Create proper node_id - if device_id already has BESS prefix, use as-is
+        const nodeId = deviceId.toString().startsWith("BESS-")
+          ? deviceId.toString()
+          : `BESS-${deviceId}`;
+
         setBessNodes((prev) => {
           const existingIndex = prev.findIndex(
-            (node) => node.node_id === `BESS-${event.BESSNodeStatus.device_id}`
+            (node) => node.node_id === nodeId
           );
           if (existingIndex >= 0) {
             const updated = [...prev];
             updated[existingIndex] = {
               ...updated[existingIndex],
-              energy_level: event.BESSNodeStatus.energy_available,
-              is_online: event.BESSNodeStatus.is_online,
+              energy_level: event.BESSNodeStatus.energy_available || 0,
+              is_online: event.BESSNodeStatus.is_online ?? true,
               last_seen: Math.floor(Date.now() / 1000),
             };
             return updated;
           } else {
             const newBessNode: BESSNode = {
-              node_id: `BESS-${event.BESSNodeStatus.device_id}`,
-              energy_level: event.BESSNodeStatus.energy_available,
+              node_id: nodeId,
+              energy_level: event.BESSNodeStatus.energy_available || 0,
               capacity_kwh: 15.0, // 15kWh max capacity (realistic Australian home battery)
               reserve_price: Math.round((5.0 + Math.random() * 25.0) * 100), // 5-30 c/kWh in cents
-              is_online: event.BESSNodeStatus.is_online,
+              is_online: event.BESSNodeStatus.is_online ?? true,
               last_seen: Math.floor(Date.now() / 1000), // Current timestamp in seconds
             };
             return [...prev, newBessNode];
           }
         });
       } else if (event.AggregatorStatus) {
+        console.log(
+          "⚡ Processing AggregatorStatus event:",
+          event.AggregatorStatus
+        );
         setAggregators((prev) => {
-          const device_id =
+          // Get device_id, preferring aggregator_id over device_id
+          let deviceId =
             event.AggregatorStatus.aggregator_id ||
             event.AggregatorStatus.device_id;
+          console.log("⚡ Extracted device_id:", deviceId);
+
+          if (!deviceId) {
+            console.warn(
+              "AggregatorStatus event missing device_id:",
+              event.AggregatorStatus
+            );
+            return prev;
+          }
+
+          // Ensure AGG- prefix is present but not duplicated
+          if (!deviceId.toString().startsWith("AGG-")) {
+            deviceId = `AGG-${deviceId}`;
+          }
+
           const existingIndex = prev.findIndex(
-            (agg) => agg.device_id === device_id
+            (agg) => agg.device_id === deviceId
           );
           if (existingIndex >= 0) {
             const updated = [...prev];
             updated[existingIndex] = {
               ...updated[existingIndex],
-              is_online: event.AggregatorStatus.is_online,
+              is_online: event.AggregatorStatus.is_online ?? true,
               reputation_score: event.AggregatorStatus.success_rate || 0.0,
               last_seen: Math.floor(Date.now() / 1000),
             };
             return updated;
           } else {
             const newAggregator: AggregatorNode = {
-              device_id: device_id,
+              device_id: deviceId,
               strategy: event.AggregatorStatus.strategy || "Conservative",
               max_bid_price: Math.round(
                 (event.AggregatorStatus.average_bid_price || 30.0) * 100
               ), // Convert to cents
               reputation_score: event.AggregatorStatus.success_rate || 0.0,
-              is_online: event.AggregatorStatus.is_online,
+              is_online: event.AggregatorStatus.is_online ?? true,
               last_seen: Math.floor(Date.now() / 1000),
             };
-            return [...prev, newAggregator];
+            console.log("⚡ Adding new aggregator:", newAggregator);
+            const updatedList = [...prev, newAggregator];
+            console.log("⚡ Total aggregators now:", updatedList.length);
+            return updatedList;
           }
         });
       }
@@ -372,12 +453,15 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  // Calculate summary statistics
-  const totalAuctions = auctions.length;
+  // Calculate summary statistics - use SystemMetrics when available, fallback to local state
+  const totalAuctions = systemMetrics?.total_auctions ?? auctions.length;
   const activeAuctions = auctions.filter((a) => a.status === "active").length;
-  const totalBids = auctions.reduce((sum, a) => sum + a.total_bids, 0);
-  const totalBessNodes = bessNodes.length;
-  const totalAggregators = aggregators.length;
+  const totalBids =
+    systemMetrics?.total_bids ??
+    auctions.reduce((sum, a) => sum + a.total_bids, 0);
+  const totalBessNodes = systemMetrics?.active_bess_nodes ?? bessNodes.length;
+  const totalAggregators =
+    systemMetrics?.active_aggregators ?? aggregators.length;
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
@@ -583,6 +667,7 @@ export const Dashboard: React.FC = () => {
               auctions={auctions}
               bessNodes={bessNodes}
               aggregators={aggregators}
+              systemMetrics={systemMetrics}
             />
           )}
           {activeTab === "bess" && (

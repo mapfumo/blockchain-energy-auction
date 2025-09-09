@@ -1,16 +1,18 @@
 import React from "react";
-import { AuctionData, BESSNode, AggregatorNode } from "../types/energy-trading";
+import { AuctionData, BESSNode, AggregatorNode, SystemMetrics } from "../types/energy-trading";
 
 interface AuctionViewProps {
   auctions: AuctionData[];
   bessNodes: BESSNode[];
   aggregators: AggregatorNode[];
+  systemMetrics?: SystemMetrics | null;
 }
 
 export const AuctionView: React.FC<AuctionViewProps> = ({
   auctions,
   bessNodes,
   aggregators,
+  systemMetrics,
 }) => {
   const formatPrice = (price: number | undefined) =>
     price !== undefined ? `${(price / 100).toFixed(2)}c/kWh` : "N/A";
@@ -47,7 +49,7 @@ export const AuctionView: React.FC<AuctionViewProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="text-2xl font-bold text-gray-900">
-            {auctions.length}
+            {systemMetrics?.total_auctions ?? auctions.length}
           </div>
           <div className="text-sm text-gray-500">Total Auctions</div>
         </div>
@@ -59,13 +61,13 @@ export const AuctionView: React.FC<AuctionViewProps> = ({
         </div>
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="text-2xl font-bold text-blue-600">
-            {auctions.reduce((sum, a) => sum + a.total_bids, 0)}
+            {systemMetrics?.total_bids ?? auctions.reduce((sum, a) => sum + a.total_bids, 0)}
           </div>
           <div className="text-sm text-gray-500">Total Bids</div>
         </div>
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="text-2xl font-bold text-purple-600">
-            {bessNodes?.length || 0}
+            {systemMetrics?.active_bess_nodes ?? (bessNodes?.length || 0)}
           </div>
           <div className="text-sm text-gray-500">BESS Nodes</div>
         </div>

@@ -50,14 +50,33 @@ export const useWebSocket = ({
 
       ws.onmessage = (event) => {
         try {
-          const data: SystemEvent = JSON.parse(event.data);
+          const rawData = JSON.parse(event.data);
+          
+          // Handle nested format from gateway: {"EventType": {...}}
+          let transformedData: SystemEvent;
+          
+          if (rawData.type && rawData.data) {
+            // Already in correct format
+            transformedData = rawData as SystemEvent;
+          } else {
+            // Transform from nested format to expected format
+            const eventType = Object.keys(rawData)[0];
+            const eventData = rawData[eventType];
+            
+            transformedData = {
+              type: eventType as SystemEvent['type'],
+              data: eventData,
+              timestamp: new Date().toISOString(),
+            };
+          }
+          
           setConnection((prev) => ({
             ...prev,
-            lastMessage: data,
+            lastMessage: transformedData,
           }));
-          onMessage?.(data);
+          onMessage?.(transformedData);
         } catch (error) {
-          console.error("Failed to parse WebSocket message:", error);
+          console.error("Failed to parse WebSocket message:", error, event.data);
         }
       };
 

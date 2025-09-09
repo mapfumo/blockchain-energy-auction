@@ -1,1 +1,267 @@
-error: could not find `Cargo.toml` in `/home/tony/Desktop/energy-trading` or any parent directory
+warning: unused variable: `aggregator_keypair`
+   --> src/lib.rs:112:9
+    |
+112 |     let aggregator_keypair = solana_sdk::signature::Keypair::new();
+    |         ^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_aggregator_keypair`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `battery_keypair`
+   --> src/lib.rs:113:9
+    |
+113 |     let battery_keypair = solana_sdk::signature::Keypair::new();
+    |         ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_battery_keypair`
+
+warning: unused variable: `auction_pubkey`
+   --> src/lib.rs:116:9
+    |
+116 |     let auction_pubkey = solana_sdk::pubkey::Pubkey::find_program_address(
+    |         ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_auction_pubkey`
+
+warning: unused variable: `energy_amount`
+   --> src/lib.rs:122:9
+    |
+122 |     let energy_amount = (energy * 1000.0) as u64;
+    |         ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_energy_amount`
+
+warning: variable does not need to be mutable
+  --> src/blockchain.rs:89:13
+   |
+89 |         let mut instruction_data = vec![
+   |             ----^^^^^^^^^^^^^^^^
+   |             |
+   |             help: remove this `mut`
+   |
+   = note: `#[warn(unused_mut)]` on by default
+
+warning: variable does not need to be mutable
+   --> src/blockchain.rs:127:13
+    |
+127 |         let mut instruction_data = vec![
+    |             ----^^^^^^^^^^^^^^^^
+    |             |
+    |             help: remove this `mut`
+
+warning: unused variable: `auction_pubkey`
+   --> src/blockchain.rs:253:9
+    |
+253 |         auction_pubkey: Pubkey,
+    |         ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_auction_pubkey`
+
+warning: unused variable: `auction_keypair`
+   --> src/blockchain.rs:265:13
+    |
+265 |         let auction_keypair = Keypair::new();
+    |             ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_auction_keypair`
+
+warning: unused variable: `account_data`
+   --> src/blockchain.rs:334:16
+    |
+334 |             Ok(account_data) => {
+    |                ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_account_data`
+
+warning: unused variable: `aggregator_pubkey`
+   --> src/blockchain.rs:367:9
+    |
+367 |         aggregator_pubkey: Pubkey,
+    |         ^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_aggregator_pubkey`
+
+warning: unused variable: `battery_pubkey`
+   --> src/blockchain.rs:382:9
+    |
+382 |         battery_pubkey: Pubkey,
+    |         ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_battery_pubkey`
+
+warning: field `usdc_mint` is never read
+  --> src/blockchain.rs:19:5
+   |
+15 | pub struct BlockchainClient {
+   |            ---------------- field in this struct
+...
+19 |     usdc_mint: Pubkey,
+   |     ^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: method `encode_settle_auction_instruction` is never used
+   --> src/blockchain.rs:226:8
+    |
+22  | impl BlockchainClient {
+    | --------------------- method in this implementation
+...
+226 |     fn encode_settle_auction_instruction(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `simple-gateway` (lib) generated 13 warnings (run `cargo fix --lib -p simple-gateway` to apply 2 suggestions)
+warning: unused imports: `Deserialize` and `Serialize`
+ --> src/main.rs:7:13
+  |
+7 | use serde::{Deserialize, Serialize};
+  |             ^^^^^^^^^^^  ^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `chrono`
+  --> src/main.rs:21:5
+   |
+21 | use chrono;
+   |     ^^^^^^
+
+warning: unused variable: `total_energy`
+   --> src/main.rs:107:9
+    |
+107 |     let total_energy: f64 = bess_nodes.values().map(|node| node.energy_level).sum();
+    |         ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_total_energy`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: function `generate_solana_signature` is never used
+   --> src/main.rs:613:4
+    |
+613 | fn generate_solana_signature() -> String {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` on by default
+
+warning: `simple-gateway` (bin "simple-gateway") generated 4 warnings (run `cargo fix --bin "simple-gateway"` to apply 2 suggestions)
+    Finished `release` profile [optimized] target(s) in 0.36s
+     Running `target/release/simple-gateway`
+[2m2025-09-09T02:48:16.380483Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Starting Energy Trading Gateway
+🔑 Gateway payer account: jxHu3tkLi5qRLyxqR6LMp2Kzqgaos4icJEokNgPPacD
+⚠️ Failed to request airdrop: airdrop request failed. This can happen when the rate limit is reached.
+[2m2025-09-09T02:48:16.381018Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m ✅ Blockchain client initialized successfully
+[2m2025-09-09T02:48:16.381179Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Gateway starting on 0.0.0.0:8080
+[2m2025-09-09T02:48:16.382203Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Generating global event...
+[2m2025-09-09T02:48:16.382226Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🎲 Generated event type: BESSNodeStatus
+[2m2025-09-09T02:48:16.382244Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Broadcasting event: BESSNodeStatus
+[2m2025-09-09T02:48:16.438913Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 001
+[2m2025-09-09T02:48:16.438966Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m ✅ Added new BESS node: 001
+[2m2025-09-09T02:48:16.441224Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 003
+[2m2025-09-09T02:48:16.441251Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m ✅ Added new BESS node: 003
+[2m2025-09-09T02:48:16.537327Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 002
+[2m2025-09-09T02:48:16.537406Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m ✅ Added new BESS node: 002
+[2m2025-09-09T02:48:16.579557Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m ⚡ Received Aggregator status update from 001
+[2m2025-09-09T02:48:16.579603Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m ✅ Added new Aggregator: 001
+[2m2025-09-09T02:48:16.609447Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m ⚡ Received Aggregator status update from 002
+[2m2025-09-09T02:48:16.609501Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m ✅ Added new Aggregator: 002
+[2m2025-09-09T02:48:21.382292Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Generating global event...
+[2m2025-09-09T02:48:21.382356Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🎲 Generated event type: BidAccepted
+[2m2025-09-09T02:48:21.382383Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Broadcasting event: BidAccepted
+[2m2025-09-09T02:48:26.382883Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Generating global event...
+[2m2025-09-09T02:48:26.382939Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🎲 Generated event type: BidPlaced
+[2m2025-09-09T02:48:26.382977Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Broadcasting event: BidPlaced
+[2m2025-09-09T02:48:26.445079Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 001
+[2m2025-09-09T02:48:26.446809Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 003
+[2m2025-09-09T02:48:26.542064Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 002
+[2m2025-09-09T02:48:31.382826Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Generating global event...
+[2m2025-09-09T02:48:31.382886Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🎲 Generated event type: AuctionStarted
+[2m2025-09-09T02:48:31.382914Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Broadcasting event: AuctionStarted
+[2m2025-09-09T02:48:31.382947Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m ✅ Added auction #1 to state (total auctions now: 1)
+[2m2025-09-09T02:48:31.580208Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m ⚡ Received Aggregator status update from 001
+[2m2025-09-09T02:48:31.604349Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m ⚡ Received Aggregator status update from 002
+[2m2025-09-09T02:48:36.382857Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Generating global event...
+[2m2025-09-09T02:48:36.382913Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🎲 Generated event type: BidAccepted
+[2m2025-09-09T02:48:36.382936Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Broadcasting event: BidAccepted
+[2m2025-09-09T02:48:36.439096Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 001
+[2m2025-09-09T02:48:36.441819Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 003
+[2m2025-09-09T02:48:36.540763Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 002
+[2m2025-09-09T02:48:41.383032Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Generating global event...
+[2m2025-09-09T02:48:41.383089Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🎲 Generated event type: AuctionCompleted
+[2m2025-09-09T02:48:41.383113Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔗 Blockchain settlement triggered for auction #2
+[2m2025-09-09T02:48:41.383127Z[0m [33m WARN[0m [2msimple_gateway[0m[2m:[0m ❌ Blockchain settlement failed for auction #2
+[2m2025-09-09T02:48:41.383143Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Broadcasting event: AuctionCompleted
+[2m2025-09-09T02:48:46.386995Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Generating global event...
+[2m2025-09-09T02:48:46.387152Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🎲 Generated event type: QuerySent
+[2m2025-09-09T02:48:46.387223Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Broadcasting event: QuerySent
+[2m2025-09-09T02:48:46.456038Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 001
+[2m2025-09-09T02:48:46.460547Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 003
+[2m2025-09-09T02:48:46.552520Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 002
+[2m2025-09-09T02:48:46.592506Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m ⚡ Received Aggregator status update from 001
+[2m2025-09-09T02:48:46.613947Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m ⚡ Received Aggregator status update from 002
+[2m2025-09-09T02:48:51.382811Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Generating global event...
+[2m2025-09-09T02:48:51.382869Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🎲 Generated event type: AuctionCompleted
+[2m2025-09-09T02:48:51.382900Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔗 Blockchain settlement triggered for auction #2
+[2m2025-09-09T02:48:51.382917Z[0m [33m WARN[0m [2msimple_gateway[0m[2m:[0m ❌ Blockchain settlement failed for auction #2
+[2m2025-09-09T02:48:51.382938Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Broadcasting event: AuctionCompleted
+[2m2025-09-09T02:48:56.395812Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Generating global event...
+[2m2025-09-09T02:48:56.395863Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🎲 Generated event type: QuerySent
+[2m2025-09-09T02:48:56.395885Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Broadcasting event: QuerySent
+[2m2025-09-09T02:48:56.439804Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 001
+[2m2025-09-09T02:48:56.443393Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 003
+[2m2025-09-09T02:48:56.539357Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 002
+[2m2025-09-09T02:49:01.392831Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Generating global event...
+[2m2025-09-09T02:49:01.392906Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🎲 Generated event type: BESSNodeStatus
+[2m2025-09-09T02:49:01.392957Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Broadcasting event: BESSNodeStatus
+[2m2025-09-09T02:49:01.597521Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m ⚡ Received Aggregator status update from 001
+[2m2025-09-09T02:49:01.625458Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m ⚡ Received Aggregator status update from 002
+[2m2025-09-09T02:49:06.382939Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Generating global event...
+[2m2025-09-09T02:49:06.383001Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🎲 Generated event type: BESSNodeStatus
+[2m2025-09-09T02:49:06.383033Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Broadcasting event: BESSNodeStatus
+[2m2025-09-09T02:49:06.445031Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 003
+[2m2025-09-09T02:49:06.447108Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 001
+[2m2025-09-09T02:49:06.540401Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 002
+[2m2025-09-09T02:49:11.382940Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Generating global event...
+[2m2025-09-09T02:49:11.383018Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🎲 Generated event type: QuerySent
+[2m2025-09-09T02:49:11.383048Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Broadcasting event: QuerySent
+[2m2025-09-09T02:49:16.382944Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Generating global event...
+[2m2025-09-09T02:49:16.383015Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🎲 Generated event type: QuerySent
+[2m2025-09-09T02:49:16.383053Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Broadcasting event: QuerySent
+[2m2025-09-09T02:49:16.438936Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 001
+[2m2025-09-09T02:49:16.442930Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 003
+[2m2025-09-09T02:49:16.538592Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 002
+[2m2025-09-09T02:49:16.579987Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m ⚡ Received Aggregator status update from 001
+[2m2025-09-09T02:49:16.609196Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m ⚡ Received Aggregator status update from 002
+[2m2025-09-09T02:49:21.382071Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Generating global event...
+[2m2025-09-09T02:49:21.382128Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🎲 Generated event type: QuerySent
+[2m2025-09-09T02:49:21.382150Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Broadcasting event: QuerySent
+[2m2025-09-09T02:49:26.383074Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Generating global event...
+[2m2025-09-09T02:49:26.383127Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🎲 Generated event type: QuerySent
+[2m2025-09-09T02:49:26.383145Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Broadcasting event: QuerySent
+[2m2025-09-09T02:49:26.439876Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 001
+[2m2025-09-09T02:49:26.443907Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 003
+[2m2025-09-09T02:49:26.544236Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 002
+[2m2025-09-09T02:49:31.382334Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Generating global event...
+[2m2025-09-09T02:49:31.382416Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🎲 Generated event type: QuerySent
+[2m2025-09-09T02:49:31.382443Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Broadcasting event: QuerySent
+[2m2025-09-09T02:49:31.580997Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m ⚡ Received Aggregator status update from 001
+[2m2025-09-09T02:49:31.609176Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m ⚡ Received Aggregator status update from 002
+[2m2025-09-09T02:49:36.391673Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Generating global event...
+[2m2025-09-09T02:49:36.391743Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🎲 Generated event type: BidAccepted
+[2m2025-09-09T02:49:36.391789Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Broadcasting event: BidAccepted
+[2m2025-09-09T02:49:36.440514Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 001
+[2m2025-09-09T02:49:36.441675Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 003
+[2m2025-09-09T02:49:36.539139Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 002
+[2m2025-09-09T02:49:41.387531Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Generating global event...
+[2m2025-09-09T02:49:41.387589Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🎲 Generated event type: AggregatorStatus
+[2m2025-09-09T02:49:41.387614Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Broadcasting event: AggregatorStatus
+[2m2025-09-09T02:49:46.383821Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Generating global event...
+[2m2025-09-09T02:49:46.383878Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🎲 Generated event type: QuerySent
+[2m2025-09-09T02:49:46.383901Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Broadcasting event: QuerySent
+[2m2025-09-09T02:49:46.446399Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 003
+[2m2025-09-09T02:49:46.446560Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 001
+[2m2025-09-09T02:49:46.544314Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 002
+[2m2025-09-09T02:49:46.579612Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m ⚡ Received Aggregator status update from 001
+[2m2025-09-09T02:49:46.605396Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m ⚡ Received Aggregator status update from 002
+[2m2025-09-09T02:49:51.382953Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Generating global event...
+[2m2025-09-09T02:49:51.383004Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🎲 Generated event type: QuerySent
+[2m2025-09-09T02:49:51.383027Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Broadcasting event: QuerySent
+[2m2025-09-09T02:49:54.034546Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m New WebSocket connection established
+[2m2025-09-09T02:49:54.045723Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m New WebSocket connection established
+[2m2025-09-09T02:49:54.047191Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔌 WebSocket client disconnected
+[2m2025-09-09T02:49:56.382987Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Generating global event...
+[2m2025-09-09T02:49:56.383048Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🎲 Generated event type: BidPlaced
+[2m2025-09-09T02:49:56.383076Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Broadcasting event: BidPlaced
+[2m2025-09-09T02:49:56.383117Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 📤 Sending event to WebSocket: Object {"BidPlaced": Object {"aggregator_id": String("AGG-001"), "auction_id": Number(2), "bess_id": String("002"), "bid_price": Number(617), "energy_amount": Number(17.186265147448907), "timestamp": Number(1757386196)}}
+[2m2025-09-09T02:49:56.383146Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 📤 Sending message to WebSocket: {"BidPlaced":{"aggregator_id":"AGG-001","auction_id":2,"bess_id":"002","bid_price":617,"energy_amount":17.186265147448907,"timestamp":1757386196}}
+[2m2025-09-09T02:49:56.436432Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 001
+[2m2025-09-09T02:49:56.437750Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 003
+[2m2025-09-09T02:49:56.539203Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🔋 Received BESS status update from 002
+[2m2025-09-09T02:50:01.382713Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Generating global event...
+[2m2025-09-09T02:50:01.382806Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🎲 Generated event type: QuerySent
+[2m2025-09-09T02:50:01.382836Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Broadcasting event: QuerySent
+[2m2025-09-09T02:50:01.382867Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 📤 Sending event to WebSocket: Object {"QuerySent": Object {"aggregator_id": String("AGG-001"), "bess_node_id": String("001"), "query_type": String("ENERGY_AVAILABLE"), "timestamp": Number(1757386201)}}
+[2m2025-09-09T02:50:01.382907Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 📤 Sending message to WebSocket: {"QuerySent":{"aggregator_id":"AGG-001","bess_node_id":"001","query_type":"ENERGY_AVAILABLE","timestamp":1757386201}}
+[2m2025-09-09T02:50:01.581465Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m ⚡ Received Aggregator status update from 001
+[2m2025-09-09T02:50:01.604684Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m ⚡ Received Aggregator status update from 002
+[2m2025-09-09T02:50:06.383034Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m Generating global event...
+[2m2025-09-09T02:50:06.383091Z[0m [32m INFO[0m [2msimple_gateway[0m[2m:[0m 🎲 Generated event type: SystemMetrics

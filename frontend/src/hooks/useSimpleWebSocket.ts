@@ -49,11 +49,15 @@ export const useSimpleWebSocket = ({
 
       ws.onmessage = (event) => {
         try {
-          const data = JSON.parse(event.data);
-          setLastMessage(data);
-          onMessageRef.current?.(data);
+          const rawData = JSON.parse(event.data);
+          console.log("📥 Raw WebSocket message:", rawData);
+          
+          // Handle nested format from gateway: {"EventType": {...}}
+          // The Dashboard expects this raw format for now
+          setLastMessage(rawData);
+          onMessageRef.current?.(rawData);
         } catch (e) {
-          console.error("Failed to parse message:", e);
+          console.error("Failed to parse message:", e, event.data);
           setLastMessage(event.data);
         }
       };

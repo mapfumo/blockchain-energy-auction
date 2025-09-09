@@ -44,10 +44,10 @@ export const AggregatorDetails: React.FC<AggregatorDetailsProps> = ({
             </div>
             <div>
               <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                {aggregator.name}
+                {aggregator.device_id}
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Device ID: {aggregator.device_id}
+                Energy Aggregator
               </p>
             </div>
           </div>
@@ -253,8 +253,8 @@ export const AggregatorDetails: React.FC<AggregatorDetailsProps> = ({
               </span>
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              Last updated:{" "}
-              {new Date(aggregator.last_updated).toLocaleTimeString()}
+              Last seen:{" "}
+              {new Date(aggregator.last_seen * 1000).toLocaleTimeString()}
             </div>
           </div>
         </div>
